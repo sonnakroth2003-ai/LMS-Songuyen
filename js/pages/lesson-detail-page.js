@@ -155,11 +155,6 @@ const setupLessonEvents = (container, lesson, currentUser) => {
     });
   });
 };
-```eof
 
-### Những thay đổi tôi đã thực hiện:
-1. **Sửa Import:** Thay đổi `import { openQuizModal }` thành `import { showQuizResultModal }`.
-2. **Sửa gọi hàm:** Trong `setupLessonEvents`, tôi đã cập nhật để sử dụng `showQuizResultModal`.
-3. **Dọn dẹp code:** Tôi đã rút gọn một số phần để file sạch và dễ đọc hơn.
 
 **Lưu ý:** Bạn hãy commit nội dung này. Sau khi commit xong, nếu ứng dụng chạy mà vẫn gặp vấn đề ở nút "Bắt đầu làm bài", hãy cho tôi biết nhé!
