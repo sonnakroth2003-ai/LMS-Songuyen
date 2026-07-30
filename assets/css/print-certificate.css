@@ -1,1 +1,177 @@
+/**
+ * @file print-certificate.css
+ * @description Stylesheet dành riêng cho giao diện hiển thị và in Giấy Chứng Nhận (A4 Landscape).
+ */
 
+/* Khung Chứa Toàn Bộ Giấy Chứng Nhận */
+.certificate-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+/* Khung Viền Trang Trí Chuẩn Giấy Chứng Nhận (Certificate Frame) */
+.certificate-frame {
+  border: 12px solid #0d6efd;
+  border-image: linear-gradient(135deg, #0d6efd 0%, #198754 50%, #0a58ca 100%) 1;
+  padding: 2.5rem;
+  text-align: center;
+  position: relative;
+  background-color: #fffdf9;
+  background-image: radial-gradient(#e9ecef 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Huy Hiệu Nổi/Chìm Góc Chứng Nhận */
+.certificate-badge-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16rem;
+  opacity: 0.04;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Typography Cho Giấy Chứng Nhận */
+.cert-header {
+  margin-bottom: 2rem;
+}
+
+.cert-title {
+  font-family: 'Montserrat', 'Georgia', serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0a58ca;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.cert-subtitle {
+  font-size: 1.1rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.cert-recipient-label {
+  font-size: 1rem;
+  color: #495057;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+.cert-student-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #212529;
+  border-bottom: 2px solid #0d6efd;
+  display: inline-block;
+  padding: 0 2rem 0.25rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.cert-body-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #343a40;
+  max-width: 680px;
+  margin: 0 auto 2rem auto;
+}
+
+.cert-course-title {
+  font-weight: 700;
+  color: #0d6efd;
+}
+
+/* Phần Chữ Ký & Ngày Tháng */
+.cert-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 3rem;
+  padding: 0 1.5rem;
+}
+
+.cert-meta-box {
+  text-align: center;
+}
+
+.cert-issue-date {
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.cert-signature-line {
+  width: 180px;
+  border-bottom: 1px solid #adb5bd;
+  margin: 1rem auto 0.5rem auto;
+}
+
+.cert-signer-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #212529;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   QUY TẮC IN ẤN (@media print)
+   ========================================================================== */
+@media print {
+  /* Khổ giấy A4 Nằm ngang & loại bỏ lề mặc định trình duyệt */
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  /* Ẩn các thành phần không cần thiết khi in */
+  body * {
+    visibility: hidden;
+  }
+
+  .navbar,
+  footer,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Chỉ hiển thị duy nhất khung Giấy chứng nhận */
+  .certificate-container,
+  .certificate-container * {
+    visibility: visible;
+  }
+
+  .certificate-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    padding: 2cm;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .certificate-frame {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+}
