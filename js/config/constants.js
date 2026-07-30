@@ -73,6 +73,14 @@ export const QUIZ_CONFIG = Object.freeze({
 });
 
 // ==========================================================
+// 4.5. DỮ LIỆU ĐẢO (ISLANDS DATA)
+// ==========================================================
+export const ISLANDS = Object.freeze([
+  { id: 'island-1', name: 'Đảo Số Nguyên', description: 'Chinh phục tập hợp số nguyên', icon: '🏝️' },
+  { id: 'island-2', name: 'Đảo Phân Số', description: 'Khám phá thế giới phân số', icon: '⛵' }
+]);
+
+// ==========================================================
 // 5. ĐƯỜNG DẪN ĐIỀU HƯỚNG (ROUTES)
 // ==========================================================
 export const ROUTES = Object.freeze({
