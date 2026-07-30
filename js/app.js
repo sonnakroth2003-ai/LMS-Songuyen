@@ -5,7 +5,7 @@
 
 import { store } from './core/store.js';
 import { initRouter } from './core/router.js';
-import { logoutUser, onAuthStateChangedListener } from './core/auth.js';
+import { logout as logoutUser, initAuthObserver as onAuthStateChangedListener } from './core/auth.js';
 
 /**
  * Render Navbar / Header chung cho toàn ứng dụng
@@ -17,7 +17,6 @@ const renderNavbar = () => {
   const state = store.getState();
   const currentUser = state.currentUser;
 
-  // Kiểm tra vai trò giáo viên
   const isTeacher = currentUser?.role === 'teacher';
 
   navContainer.innerHTML = `
@@ -83,7 +82,6 @@ const renderNavbar = () => {
     </nav>
   `;
 
-  // Gắn sự kiện nút Đăng xuất
   const logoutBtn = navContainer.querySelector('#btn-global-logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
@@ -118,15 +116,12 @@ const renderFooter = () => {
 const initApp = () => {
   console.log('[App] Đang khởi chạy ứng dụng Đảo Tri Thức...');
 
-  // Render các thành phần tĩnh chung
   renderFooter();
 
-  // Đăng ký lắng nghe sự kiện thay đổi state trong Store để re-render Navbar
   store.subscribe(() => {
     renderNavbar();
   });
 
-  // Lắng nghe trạng thái xác thực từ Firebase (hoặc Mock Session)
   if (typeof onAuthStateChangedListener === 'function') {
     onAuthStateChangedListener((user) => {
       store.setState({ currentUser: user });
@@ -136,9 +131,7 @@ const initApp = () => {
     renderNavbar();
   }
 
-  // Khởi tạo bộ định tuyến (Router sẽ tự động lắng nghe hashchange và xử lý route đầu tiên)
   initRouter();
 };
 
-// Kích hoạt ứng dụng khi DOM đã sẵn sàng
 document.addEventListener('DOMContentLoaded', initApp);
