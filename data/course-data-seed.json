@@ -1,1 +1,155 @@
-
+{
+  "courses": [
+    {
+      "id": "course_math_10_vectors",
+      "title": "Chinh Phục Vectơ Toán 10",
+      "description": "Hành trình khám phá kiến thức Vectơ lớp 10 qua các Đảo Tri Thức interactive.",
+      "grade": 10,
+      "subject": "Mathematics",
+      "totalIslands": 4,
+      "createdDate": "2026-04-01T00:00:00Z",
+      "islands": [
+        {
+          "id": "island_01_concept",
+          "order": 1,
+          "title": "Đảo 1: Khái Niệm Vectơ & Tổng Hiệu",
+          "description": "Nắm vững định nghĩa vectơ, độ dài, vectơ cùng hướng, cùng phương và các phép toán cộng trừ.",
+          "difficulty": "easy",
+          "rewardExp": 100,
+          "minPassScore": 70,
+          "quizzes": [
+            {
+              "id": "q101",
+              "question": "Vectơ là một đoạn thẳng có đặc điểm gì?",
+              "options": [
+                "A. Có độ dài cố định",
+                "B. Có hướng",
+                "C. Song song với trục hoành",
+                "D. Không có gốc"
+              ],
+              "correctAnswerIndex": 1,
+              "explanation": "Vectơ là một đoạn thẳng có hướng (định hướng từ điểm đầu đến điểm cuối)."
+            },
+            {
+              "id": "q102",
+              "question": "Quy tắc 3 điểm đối với phép cộng vectơ: Cho 3 điểm A, B, C bất kỳ, ta luôn có:",
+              "options": [
+                "A. AB + BC = AC",
+                "B. AB + AC = BC",
+                "C. AB - BC = AC",
+                "D. BA + BC = AC"
+              ],
+              "correctAnswerIndex": 0,
+              "explanation": "Theo quy tắc 3 điểm, vectơ AB + vectơ BC = vectơ AC."
+            },
+            {
+              "id": "q103",
+              "question": "Vectơ nào sau đây được gọi là vectơ-không?",
+              "options": [
+                "A. Vectơ có độ dài bằng 1",
+                "B. Vectơ có điểm đầu và điểm cuối trùng nhau",
+                "C. Vectơ vuông góc với mọi vectơ khác",
+                "D. Vectơ có độ dài tùy ý"
+              ],
+              "correctAnswerIndex": 1,
+              "explanation": "Vectơ-không (ký hiệu 0) là vectơ có điểm đầu và điểm cuối trùng nhau (ví dụ: AA, BB)."
+            }
+          ]
+        },
+        {
+          "id": "island_02_scalar_multiplication",
+          "order": 2,
+          "title": "Đảo 2: Tích Của Vectơ Với Một Số",
+          "description": "Tìm hiểu điều kiện hai vectơ cùng phương, biểu diễn một vectơ theo hai vectơ không cùng phương.",
+          "difficulty": "medium",
+          "rewardExp": 150,
+          "minPassScore": 70,
+          "quizzes": [
+            {
+              "id": "q201",
+              "question": "Cho k là một số thực khác 0 và vectơ a khác 0. Vectơ k*a cùng hướng với a khi nào?",
+              "options": [
+                "A. k < 0",
+                "B. k > 0",
+                "C. k = 0",
+                "D. Với mọi k"
+              ],
+              "correctAnswerIndex": 1,
+              "explanation": "Nếu k > 0 thì k*a cùng hướng với a; nếu k < 0 thì k*a ngược hướng với a."
+            },
+            {
+              "id": "q202",
+              "question": "Điểm I là trung điểm của đoạn thẳng AB khi và chỉ khi:",
+              "options": [
+                "A. IA + IB = 0",
+                "B. IA = IB",
+                "C. IA - IB = 0",
+                "D. IA + IB = AB"
+              ],
+              "correctAnswerIndex": 0,
+              "explanation": "I là trung điểm của AB khi và chỉ khi vectơ IA + vectơ IB = vectơ 0."
+            }
+          ]
+        },
+        {
+          "id": "island_03_coordinates",
+          "order": 3,
+          "title": "Đảo 3: Tọa Độ Của Vectơ Trong Mặt Phẳng",
+          "description": "Thao tác trên tọa độ Oxy, tính độ dài vectơ và tọa độ trung điểm, trọng tâm.",
+          "difficulty": "medium",
+          "rewardExp": 200,
+          "minPassScore": 80,
+          "quizzes": [
+            {
+              "id": "q301",
+              "question": "Trong mặt phẳng Oxy, cho điểm A(1; 2) và B(4; 6). Tọa độ của vectơ AB là:",
+              "options": [
+                "A. (5; 8)",
+                "B. (3; 4)",
+                "C. (-3; -4)",
+                "D. (4; 12)"
+              ],
+              "correctAnswerIndex": 1,
+              "explanation": "Tọa độ vectơ AB = (xB - xA; yB - yA) = (4 - 1; 6 - 2) = (3; 4)."
+            },
+            {
+              "id": "q302",
+              "question": "Độ dài của vectơ u = (3; 4) trong mặt phẳng Oxy là:",
+              "options": [
+                "A. 7",
+                "B. 1",
+                "C. 5",
+                "D. 25"
+              ],
+              "correctAnswerIndex": 2,
+              "explanation": "Độ dài |u| = sqrt(3^2 + 4^2) = sqrt(9 + 16) = sqrt(25) = 5."
+            }
+          ]
+        },
+        {
+          "id": "island_04_scalar_product",
+          "order": 4,
+          "title": "Đảo 4: Tích Vô Hướng Của Hai Vectơ",
+          "description": "Định nghĩa tích vô hướng, ứng dụng tính góc giữa 2 vectơ và khoảng cách.",
+          "difficulty": "hard",
+          "rewardExp": 300,
+          "minPassScore": 80,
+          "quizzes": [
+            {
+              "id": "q401",
+              "question": "Hai vectơ a và b vuông góc với nhau khi và chỉ khi tích vô hướng a * b bằng:",
+              "options": [
+                "A. 1",
+                "B. -1",
+                "C. 0",
+                "D. Độ dài a + b"
+              ],
+              "correctAnswerIndex": 2,
+              "explanation": "Hai vectơ vuông góc khi và chỉ khi cos(a, b) = 0, suy ra tích vô hướng a * b = 0."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
