@@ -4,7 +4,7 @@
  */
 
 import { store } from '../core/store.js';
-import { loginUser } from '../services/auth-service.js';
+import { loginUser } from '../core/auth.js';
 
 /**
  * Render chuỗi HTML cho trang Đăng Nhập
