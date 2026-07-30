@@ -1,1 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giấy Chứng Nhận Hoàn Thành - {{STUDENT_NAME}}</title>
+  <!-- Google Fonts dành cho Giấy Chứng Nhận -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet chuyên biệt cho Giấy Chứng Nhận -->
+  <link rel="stylesheet" href="../css/print-certificate.css">
+</head>
+<body>
 
+  <div class="certificate-container" id="certificate-print-area">
+    <div class="certificate-frame">
+      <!-- Watermark biểu trưng chìm phía sau -->
+      <div class="certificate-badge-watermark">🏆</div>
+
+      <!-- Header Giấy Chứng Nhận -->
+      <div class="cert-header">
+        <div class="cert-subtitle">Hệ Thống Học Tập Thông Minh - Đảo Tri Thức</div>
+        <h1 class="cert-title">Giấy Chứng Nhận</h1>
+        <div class="cert-subtitle">Certificate of Completion</div>
+      </div>
+
+      <!-- Thông tin Người Nhận -->
+      <div class="cert-body">
+        <p class="cert-recipient-label">Chứng nhận em học sinh:</p>
+        <h2 class="cert-student-name" id="cert-student-name">{{STUDENT_NAME}}</h2>
+        
+        <p class="cert-body-text">
+          Đã xuất sắc hoàn thành toàn bộ các thử thách và chinh phục khóa học
+          <br>
+          <span class="cert-course-title" id="cert-course-title">{{COURSE_NAME}}</span>
+        </p>
+      </div>
+
+      <!-- Footer: Ngày cấp, Mã chứng nhận & Chữ ký -->
+      <div class="cert-footer">
+        <div class="cert-meta-box" style="text-align: left;">
+          <p class="cert-issue-date">Ngày cấp: <strong id="cert-date">{{COMPLETION_DATE}}</strong></p>
+          <p class="cert-issue-date">Mã tra cứu: <strong id="cert-id">{{CERTIFICATE_ID}}</strong></p>
+        </div>
+
+        <div class="cert-meta-box">
+          <div class="cert-signer-title">Ban Quản Lý Đảo Tri Thức</div>
+          <div class="cert-signature-line"></div>
+          <p class="cert-issue-date">Xác nhận tự động từ hệ thống</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
