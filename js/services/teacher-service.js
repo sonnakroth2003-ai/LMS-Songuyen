@@ -66,18 +66,12 @@ const MOCK_STUDENTS_LIST = [
 
 /**
  * Lấy danh sách toàn bộ học sinh cùng tiến độ học tập chi tiết
- * @returns {Promise<Array>} Danh sách học sinh đã kèm tiến độ
  */
 export const getAllStudentsProgress = async () => {
   try {
-    // TODO: Khi kết nối Firebase Firestore thực tế, query collection 'users' (role='student') 
-    // và join/map dữ liệu từ collection 'student_progress'.
-    
-    // Hiện tại trả về Mock Data chuẩn cấu trúc
+    // TODO: Triển khai Firestore collection 'users' kết hợp với 'student_progress'
     return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(MOCK_STUDENTS_LIST);
-      }, 300);
+      setTimeout(() => resolve(MOCK_STUDENTS_LIST), 300);
     });
   } catch (error) {
     console.error('[TeacherService] Lỗi khi tải danh sách học sinh:', error);
@@ -87,8 +81,6 @@ export const getAllStudentsProgress = async () => {
 
 /**
  * Lấy thông tin chi tiết và tiến độ làm bài của 1 học sinh cụ thể
- * @param {string} studentId - UID của học sinh
- * @returns {Promise<Object|null>} Thông tin học sinh kèm tiến độ
  */
 export const getStudentDetailProgress = async (studentId) => {
   try {
@@ -97,26 +89,22 @@ export const getStudentDetailProgress = async (studentId) => {
     const allStudents = await getAllStudentsProgress();
     const student = allStudents.find((st) => st.uid === studentId || st.studentCode === studentId);
 
-    if (!student) {
-      console.warn(`[TeacherService] Không tìm thấy học sinh ID: ${studentId}`);
-      return null;
-    }
+    if (!student) return null;
 
-    // Tính toán thêm chỉ số tổng hợp
     const islandsData = student.progress?.islands || {};
     const scores = Object.values(islandsData)
       .map((item) => item?.score)
-      .filter((s) => typeof s === 'number');
+      .filter((s) => typeof s === 'number' && !isNaN(s));
 
-    const avgScore = calculateAverageScore ? calculateAverageScore(scores) : 0;
-    const rank = getAcademicRank ? getAcademicRank(avgScore) : { label: 'Chưa xếp loại' };
+    const avgScore = calculateAverageScore(scores);
+    const rank = getAcademicRank(avgScore);
 
     return {
       ...student,
       summary: {
         averageScore: avgScore,
         academicRank: rank,
-        completedIslandsCount: Object.keys(islandsData).filter((k) => islandsData[k]?.isCompleted).length,
+        completedIslandsCount: Object.values(islandsData).filter((i) => i?.isCompleted).length,
         totalIslands: Object.keys(ISLANDS || {}).length || 5
       }
     };
@@ -127,31 +115,23 @@ export const getStudentDetailProgress = async (studentId) => {
 };
 
 /**
- * Cập nhật thủ công trạng thái hoặc mở khóa đảo cho học sinh (Tính năng Giáo viên can thiệp)
- * @param {string} studentId - UID học sinh
- * @param {string} islandId - ID Đảo cần mở khóa/cập nhật
- * @param {Object} updateData - Dữ liệu cập nhật { isUnlocked, isCompleted, score }
- * @returns {Promise<boolean>} Trạng thái cập nhật thành công hay thất bại
+ * Cập nhật thủ công trạng thái hoặc mở khóa đảo cho học sinh
  */
 export const overrideStudentProgress = async (studentId, islandId, updateData = {}) => {
   try {
-    console.log(`[TeacherService] Cập nhật tiến độ cho HS ${studentId} tại ${islandId}:`, updateData);
-    
-    // Trong môi trường Firestore thực tế:
-    // await updateDoc(doc(db, 'student_progress', studentId), { [`islands.${islandId}`]: updateData });
-
+    // Cảnh báo: Đây là logic giả lập, cần thay thế bằng updateDoc khi dùng Firestore thực tế
     const targetStudent = MOCK_STUDENTS_LIST.find((st) => st.uid === studentId);
-    if (targetStudent) {
-      if (!targetStudent.progress.islands[islandId]) {
-        targetStudent.progress.islands[islandId] = {};
-      }
-      Object.assign(targetStudent.progress.islands[islandId], updateData);
-      return true;
-    }
+    if (!targetStudent) return false;
 
-    return false;
+    if (!targetStudent.progress.islands[islandId]) {
+      targetStudent.progress.islands[islandId] = {};
+    }
+    
+    Object.assign(targetStudent.progress.islands[islandId], updateData);
+    return true;
   } catch (error) {
-    console.error('[TeacherService] Lỗi khi cập nhật tiến độ học sinh:', error);
+    console.error('[TeacherService] Lỗi khi cập nhật tiến độ:', error);
     return false;
   }
 };
+```eof
