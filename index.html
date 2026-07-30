@@ -3,29 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Hệ thống LMS học tập trực tuyến môn Toán THCS - Chương 3: Số Nguyên">
-  <title>LMS Toán THCS - Hệ Thống Học Tập Trực Tuyến</title>
+  <meta name="description" content="Hệ thống LMS Học Tập Trực Tuyến - Đảo Tri Thức">
+  <title>LMS Đảo Tri Thức - Hệ Thống Học Tập Trực Tuyến</title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
 
   <!-- Google Fonts (Roboto & Montserrat) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-  <!-- CSS Stylesheets -->
-  <link rel="stylesheet" href="/assets/css/main.css">
-  <link rel="stylesheet" href="/assets/css/components.css">
-  <link rel="stylesheet" href="/assets/css/pages/auth.css">
-  <link rel="stylesheet" href="/assets/css/pages/student.css">
-  <link rel="stylesheet" href="/assets/css/pages/teacher.css">
-  <link rel="stylesheet" href="/assets/css/print-certificate.css">
+  <!-- CSS Stylesheets (Sử dụng đường dẫn tương đối ./) -->
+  <link rel="stylesheet" href="./assets/css/main.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/pages/auth.css">
+  <link rel="stylesheet" href="./assets/css/pages/student.css">
+  <link rel="stylesheet" href="./assets/css/pages/teacher.css">
+  <link rel="stylesheet" href="./assets/css/print-certificate.css">
 
-  <!-- External Libraries (CDN Fallbacks & Vendors) -->
-  <!-- SheetJS (XLSX Export) -->
+  <!-- External Libraries (CDN Vendors) -->
+  <!-- SheetJS (XLSX Export cho Giáo viên) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- html2pdf.js (PDF Certificate Generation) -->
+  <!-- html2pdf.js (Xuất Giấy chứng nhận PDF) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -38,15 +38,15 @@
     <!-- Initial Loading State -->
     <div class="app-loading">
       <div class="spinner"></div>
-      <p>Đang tải hệ thống LMS...</p>
+      <p>Đang tải hệ thống LMS Đảo Tri Thức...</p>
     </div>
   </main>
 
-  <!-- Global Modal / Toast Container -->
+  <!-- Global Modal / Toast Notification Container -->
   <div id="modal-container" class="modal-root"></div>
 
   <!-- Main JavaScript Application Entry Point -->
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
 
 </body>
 </html>
