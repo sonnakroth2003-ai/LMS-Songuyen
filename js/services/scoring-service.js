@@ -86,4 +86,3 @@ export const renderRankBadge = (averageScore = 0) => {
     </span>
   `;
 };
-```eof
