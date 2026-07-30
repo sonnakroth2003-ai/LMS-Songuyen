@@ -4,7 +4,7 @@
  */
 
 import { store } from './core/store.js';
-import { handleRouting } from './core/router.js';
+import { initRouter } from './core/router.js';
 import { logoutUser, onAuthStateChangedListener } from './core/auth.js';
 
 /**
@@ -17,7 +17,7 @@ const renderNavbar = () => {
   const state = store.getState();
   const currentUser = state.currentUser;
 
-  // Nếu ở trang đăng nhập thì có thể ẩn bớt menu
+  // Kiểm tra vai trò giáo viên
   const isTeacher = currentUser?.role === 'teacher';
 
   navContainer.innerHTML = `
@@ -131,17 +131,13 @@ const initApp = () => {
     onAuthStateChangedListener((user) => {
       store.setState({ currentUser: user });
       renderNavbar();
-      handleRouting(); // Điều hướng dựa trên URL hash hiện tại
     });
   } else {
     renderNavbar();
-    handleRouting();
   }
 
-  // Lắng nghe sự kiện thay đổi Hash URL để điều hướng trang
-  window.addEventListener('hashchange', () => {
-    handleRouting();
-  });
+  // Khởi tạo bộ định tuyến (Router sẽ tự động lắng nghe hashchange và xử lý route đầu tiên)
+  initRouter();
 };
 
 // Kích hoạt ứng dụng khi DOM đã sẵn sàng
