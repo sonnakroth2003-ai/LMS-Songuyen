@@ -47,6 +47,9 @@ export const login = async (email, password) => {
   }
 };
 
+// Alias loginUser để tương thích với login-page.js
+export const loginUser = login;
+
 /**
  * Đăng xuất người dùng khỏi hệ thống (Export tên logoutUser để tương thích với app.js)
  * @returns {Promise<void>}
