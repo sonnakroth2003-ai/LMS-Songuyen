@@ -1,1 +1,155 @@
+/**
+ * @file auth.css
+ * @description Stylesheet dành riêng cho trang Đăng Nhập / Đăng Ký (Auth Page).
+ */
 
+/* Container bao bọc toàn màn hình đăng nhập */
+.auth-page-container {
+  min-height: calc(100vh - 130px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+}
+
+/* Thẻ Card chứa Form Đăng nhập */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Header của Card Đăng nhập */
+.auth-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: #ffffff;
+  padding: 2.25rem 1.5rem 1.75rem 1.5rem;
+  text-align: center;
+  position: relative;
+}
+
+.auth-header .auth-logo-icon {
+  font-size: 3rem;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.auth-header h3 {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+/* Bộ chọn Vai trò (Học Sinh / Giáo Viên) */
+.role-selector-group {
+  display: flex;
+  background-color: #f1f3f5;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.role-selector-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.role-selector-btn.active {
+  background-color: #ffffff;
+  color: #0d6efd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Tùy chỉnh các Ô Nhập Liệu (Inputs) */
+.auth-form .form-floating > .form-control {
+  border-radius: 10px;
+  border: 1.5px solid #dee2e6;
+  padding-left: 1rem;
+}
+
+.auth-form .form-floating > .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.auth-form .form-floating > label {
+  color: #6c757d;
+}
+
+/* Nút Submit Đăng Nhập */
+.btn-auth-submit {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+  transition: all 0.25s ease;
+}
+
+.btn-auth-submit:hover {
+  background: linear-gradient(135deg, #0b5ed7 0%, #084298 100%);
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-auth-submit:active {
+  transform: translateY(0);
+}
+
+/* Khung hiển thị thông báo lỗi / thành công */
+.auth-alert-container {
+  min-height: 48px;
+}
+
+/* Animation trôi nhẹ cho Icon logo */
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 576px) {
+  .auth-card {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .auth-header {
+    padding: 1.75rem 1.25rem 1.25rem 1.25rem;
+  }
+
+  .auth-header .auth-logo-icon {
+    font-size: 2.5rem;
+  }
+}
