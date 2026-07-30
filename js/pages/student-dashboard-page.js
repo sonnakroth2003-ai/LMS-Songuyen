@@ -1,13 +1,12 @@
 /**
- * @file student-dashboard.js
- * @description Quản lý logic giao diện Bảng điều khiển Học sinh (Hiển thị các Đảo học tập & Tiến độ).
+ * @file student-dashboard-page.js
+ * @description Quản lý giao diện Bảng điều khiển Học sinh (Hiển thị các Đảo Tri Thức & Tiến độ).
  */
 
-import { getCurrentUser } from '../services/auth-service.js';
-import { getStudentProgress } from '../services/student-progress-service.js';
+import { store } from '../core/store.js';
+import { getStudentProgress } from '../services/progress-service.js';
 import { calculateAverageScore, getAcademicRank } from '../services/scoring-service.js';
-import { ISLANDS, ROUTES } from '../config/constants.js';
-import { initNavbar } from '../components/navbar.js';
+import { ISLANDS } from '../config/constants.js';
 
 /**
  * Render cấu trúc HTML Bảng điều khiển học sinh
@@ -16,8 +15,8 @@ import { initNavbar } from '../components/navbar.js';
  * @returns {string} Chuỗi HTML
  */
 export const renderStudentDashboardHTML = (user, progress) => {
-  const islandsData = progress?.islands || {};
-  
+  const islandsData = progress?.islands || progress || {};
+
   // Tính toán số đảo đã hoàn thành và điểm trung bình
   const islandKeys = Object.keys(ISLANDS);
   let completedCount = 0;
@@ -33,108 +32,120 @@ export const renderStudentDashboardHTML = (user, progress) => {
     }
   });
 
-  const completionPercent = Math.round((completedCount / islandKeys.length) * 100);
-  const avgScore = calculateAverageScore(scores);
-  const rank = getAcademicRank(avgScore);
+  const completionPercent = islandKeys.length > 0 
+    ? Math.round((completedCount / islandKeys.length) * 100) 
+    : 0;
+  const avgScore = calculateAverageScore ? calculateAverageScore(scores) : 0;
+  const rank = getAcademicRank ? getAcademicRank(avgScore) : { label: 'Chưa xếp loại' };
 
-  // Render thẻ danh sách các Đảo
+  // Render thẻ danh sách các Đảo Tri Thức
   const islandCardsHTML = islandKeys.map((key, index) => {
-    const config = ISLANDS[key];
+    const config = ISLANDS[key] || { name: `Đảo ${index + 1}`, description: '' };
     const itemProgress = islandsData[key] || {};
-    
+
     // Đảo 1 luôn mở. Đảo N mở khi đảo N-1 đã hoàn thành.
     const isPreviousCompleted = index === 0 || islandsData[islandKeys[index - 1]]?.isCompleted;
     const isUnlocked = isPreviousCompleted || itemProgress.isUnlocked;
     const isCompleted = itemProgress.isCompleted || false;
-    const currentScore = itemProgress.score ?? '--';
+    const currentScore = itemProgress.score !== undefined ? `${itemProgress.score}` : '--';
 
-    let statusBadge = `<span class="badge badge-locked">🔒 Đã khóa</span>`;
+    let statusBadge = `<span class="badge bg-secondary">🔒 Đã khóa</span>`;
     if (isCompleted) {
-      statusBadge = `<span class="badge badge-completed">✅ Hoàn thành</span>`;
+      statusBadge = `<span class="badge bg-success">✅ Hoàn thành</span>`;
     } else if (isUnlocked) {
-      statusBadge = `<span class="badge badge-unlocked">🌟 Đang mở</span>`;
+      statusBadge = `<span class="badge bg-warning text-dark">🌟 Đang mở</span>`;
     }
 
     return `
-      <div class="island-card ${!isUnlocked ? 'is-locked' : ''} ${isCompleted ? 'is-completed' : ''}" data-island-id="${key}">
-        <div class="island-card-header">
-          <span class="island-icon">${config.icon || '🏝️'}</span>
-          <div class="island-title-group">
-            <h3 class="island-name">${config.name}</h3>
-            <span class="island-subtitle">${config.description || ''}</span>
+      <div class="col-12 col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm island-card ${!isUnlocked ? 'border-secondary opacity-75' : ''} ${isCompleted ? 'border-success' : ''}">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fs-3">${config.icon || '🏝️'}</span>
+            ${statusBadge}
           </div>
-          ${statusBadge}
-        </div>
-
-        <div class="island-card-body">
-          <div class="island-stat">
-            <span class="stat-label">Số câu hỏi:</span>
-            <span class="stat-value">${config.totalQuestions || 10} câu</span>
+          <div class="card-body">
+            <h5 class="card-title fw-bold">${config.name}</h5>
+            <p class="card-text text-muted small">${config.description || ''}</p>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top small">
+              <span>Điểm cao nhất:</span>
+              <strong class="text-primary fs-6">${currentScore} / 10</strong>
+            </div>
           </div>
-          <div class="island-stat">
-            <span class="stat-label">Điểm cao nhất:</span>
-            <span class="stat-value highlight">${currentScore} / 10</span>
+          <div class="card-footer bg-transparent border-0 pb-3">
+            ${
+              isUnlocked
+                ? `<button class="btn ${isCompleted ? 'btn-outline-primary' : 'btn-primary'} w-100 btn-start-quiz" data-island="${key}">
+                    ${isCompleted ? '🔄 Ôn Tập Lại' : '🚀 Chinh Phục Đảo'}
+                   </button>`
+                : `<button class="btn btn-secondary w-100" disabled>🔒 Cần Hoàn Thành Đảo Trước</button>`
+            }
           </div>
-        </div>
-
-        <div class="island-card-footer">
-          ${
-            isUnlocked
-              ? `<button class="btn btn-primary btn-start-quiz" data-island="${key}">
-                  ${isCompleted ? '🔄 Luyện Tập Lại' : '🚀 Chinh Phục Đảo'}
-                 </button>`
-              : `<button class="btn btn-disabled" disabled>🔒 Cần Hoàn Thành Đảo Trước</button>`
-          }
         </div>
       </div>
     `;
   }).join('');
 
   return `
-    <div class="student-dashboard-page">
+    <div class="student-dashboard-page container py-4">
       <!-- Welcome Header Banner -->
-      <section class="dashboard-banner">
-        <div class="banner-content">
-          <h1 class="welcome-title">Xin chào, ${user.fullName || 'Học sinh'}! 👋</h1>
-          <p class="welcome-sub">Hãy sẵn sàng khám phá các hòn đảo tri thức và thu thập chứng nhận nhé!</p>
-        </div>
-        <div class="banner-stats">
-          <div class="stat-box">
-            <span class="stat-number">${completionPercent}%</span>
-            <span class="stat-desc">Tiến Độ Tự Học</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-number">${avgScore}</span>
-            <span class="stat-desc">Điểm Trung Bình</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-number">${rank.label}</span>
-            <span class="stat-desc">Xếp Loại</span>
+      <section class="card bg-primary text-white shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-7 mb-3 mb-md-0">
+              <h2 class="fw-bold mb-2">Xin chào, ${user?.fullName || user?.username || 'Học sinh'}! 👋</h2>
+              <p class="mb-0 opacity-90">Hãy sẵn sàng khám phá các hòn đảo tri thức và thu thập chứng nhận nhé!</p>
+            </div>
+            <div class="col-md-5">
+              <div class="row text-center g-2">
+                <div class="col-4">
+                  <div class="bg-white bg-opacity-25 rounded p-2">
+                    <div class="fs-4 fw-bold">${completionPercent}%</div>
+                    <div class="small opacity-75">Tiến Độ</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="bg-white bg-opacity-25 rounded p-2">
+                    <div class="fs-4 fw-bold">${avgScore}</div>
+                    <div class="small opacity-75">ĐTB</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="bg-white bg-opacity-25 rounded p-2">
+                    <div class="fs-6 fw-bold text-truncate">${rank.label || 'Khá'}</div>
+                    <div class="small opacity-75">Xếp Loại</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- Main Section: Islands Grid -->
-      <section class="islands-section">
-        <div class="section-header">
-          <h2>🏝️ Hành Trình Khám Phá Các Đảo</h2>
-          <p>Hoàn thành từng đảo để mở khóa nội dung tiếp theo và nhận giấy chứng nhận.</p>
+      <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h3 class="fw-bold mb-1">🏝️ Hành Trình Khám Phá Các Đảo</h3>
+            <p class="text-muted small mb-0">Hoàn thành từng đảo để mở khóa nội dung tiếp theo.</p>
+          </div>
         </div>
 
-        <div class="islands-grid">
+        <div class="row">
           ${islandCardsHTML}
         </div>
       </section>
 
       <!-- Quick Action: Certificate Section -->
-      <section class="certificate-shortcut-card">
-        <div class="shortcut-info">
-          <h3>🎓 Giấy Chứng Nhận Hoàn Thành</h3>
-          <p>Đạt điểm trung bình từ 6.5 trở lên để mở khóa Giấy Chứng Nhận chính thức từ hệ thống.</p>
+      <section class="card bg-light border-0 shadow-sm p-4 text-center text-md-start">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+          <div class="mb-3 mb-md-0">
+            <h4 class="fw-bold mb-1">🎓 Giấy Chứng Nhận Hoàn Thành</h4>
+            <p class="text-muted mb-0">Hoàn thành tất cả các Đảo Tri Thức để nhận Giấy Chứng Nhận chính thức.</p>
+          </div>
+          <button id="btn-view-certificate" class="btn btn-success px-4">
+            🏆 Xem Chứng Nhận
+          </button>
         </div>
-        <a href="${ROUTES.STUDENT_CERTIFICATE}" class="btn btn-accent">
-          🏆 Xem Chứng Nhận
-        </a>
       </section>
     </div>
   `;
@@ -142,66 +153,72 @@ export const renderStudentDashboardHTML = (user, progress) => {
 
 /**
  * Đăng ký các sự kiện tương tác trên Bảng điều khiển Học sinh
+ * @param {HTMLElement} container 
  */
-export const setupStudentDashboardEvents = () => {
-  // Lắng nghe sự kiện bấm nút Chinh phục / Luyện tập bài thi ở các Đảo
-  const quizButtons = document.querySelectorAll('.btn-start-quiz');
+export const setupStudentDashboardEvents = (container) => {
+  // Lắng nghe sự kiện bấm nút Chinh phục / Luyện tập
+  const quizButtons = container.querySelectorAll('.btn-start-quiz');
   quizButtons.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const islandId = e.currentTarget.dataset.island;
       if (islandId) {
-        // Điều hướng sang trang làm bài thi của Đảo chỉ định
-        window.location.href = `${ROUTES.STUDENT_QUIZ}?island=${islandId}`;
+        window.location.hash = `#/lesson?id=${islandId}`;
       }
     });
   });
+
+  // Nút xem chứng nhận
+  const certBtn = container.querySelector('#btn-view-certificate');
+  if (certBtn) {
+    certBtn.addEventListener('click', () => {
+      window.location.hash = '#/certificate';
+    });
+  }
 };
 
 /**
- * Hàm khởi tạo và tải toàn bộ trang Dashboard Học Sinh
- * @param {string|HTMLElement} containerTarget - DOM element hoặc selector
+ * Hàm khởi tạo và render chính của trang Student Dashboard Page
+ * @param {HTMLElement} container - DOM Element container
  */
-export const initStudentDashboardPage = async (containerTarget = '#app-content') => {
-  const container = typeof containerTarget === 'string' 
-    ? document.querySelector(containerTarget) 
-    : containerTarget;
+export const renderStudentDashboardPage = async (container) => {
+  if (!container) return;
 
-  if (!container) {
-    console.error('[Student Dashboard] Không tìm thấy phần tử DOM container.');
+  const state = store.getState();
+  const currentUser = state.currentUser;
+
+  // Kiểm tra nếu chưa đăng nhập thì chuyển hướng về màn Login
+  if (!currentUser) {
+    window.location.hash = '#/login';
     return;
   }
 
+  // Hiển thị loading
+  container.innerHTML = `
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted">Đang tải hành trình khám phá đảo...</p>
+    </div>
+  `;
+
   try {
-    // 1. Kiểm tra tài khoản hiện tại
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      window.location.href = ROUTES.LOGIN;
-      return;
-    }
-
-    // Render Navbar chung
-    initNavbar('#app-header', currentUser);
-
-    // Hiển thị trạng thái đang tải
-    container.innerHTML = `
-      <div class="loading-spinner-container">
-        <div class="spinner"></div>
-        <p>Đang tải hành trình khám phá đảo...</p>
-      </div>
-    `;
-
-    // 2. Lấy tiến độ học tập từ Firestore
+    // Lấy tiến độ học tập từ Firestore / Service
     const progress = await getStudentProgress(currentUser.uid);
 
-    // 3. Render HTML và gắn Event Listener
+    // Cập nhật vào store
+    store.setStudentProgress(progress);
+
+    // Render HTML và gắn Event Listener
     container.innerHTML = renderStudentDashboardHTML(currentUser, progress);
-    setupStudentDashboardEvents();
+    setupStudentDashboardEvents(container);
+
   } catch (error) {
     console.error('[Student Dashboard] Lỗi khởi tạo trang Dashboard:', error);
     container.innerHTML = `
-      <div class="error-container">
-        <p class="error-msg">⚠️ Có lỗi xảy ra khi tải dữ liệu tiến độ. Vui lòng thử lại!</p>
-        <button class="btn btn-secondary" onclick="window.location.reload()">Thử lại</button>
+      <div class="container text-center py-5">
+        <div class="alert alert-danger" role="alert">
+          ⚠️ Có lỗi xảy ra khi tải dữ liệu tiến độ. Vui lòng thử lại sau!
+        </div>
+        <button class="btn btn-secondary mt-2" onclick="window.location.reload()">Làm mới trang</button>
       </div>
     `;
   }
