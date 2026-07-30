@@ -1,1 +1,189 @@
+/**
+ * @file student.css
+ * @description Stylesheet dành riêng cho Trang Bảng Điều Khiển Học Sinh & Bản Đồ Đảo Tri Thức.
+ */
 
+/* Banner Tổng Quan Tiến Độ Học Sinh */
+.student-summary-banner {
+  background: linear-gradient(135deg, #0d6efd 0%, #0dcdf0 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.18);
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-summary-banner::after {
+  content: "🏝️";
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  font-size: 7rem;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.student-summary-banner .stat-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.student-summary-banner .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.student-summary-banner .stat-label {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+/* Khung Bản Đồ Các Đảo Tri Thức (Grid Layout) */
+.islands-map-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.75rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Định dạng Thẻ Đảo (Island Card) */
+.island-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #e9ecef;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+}
+
+/* 1. Trạng Thái: Đã Khóa (Locked) */
+.island-card.locked {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  opacity: 0.75;
+}
+
+.island-card.locked .island-icon {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.island-card.locked .lock-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #6c757d;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* 2. Trạng Thái: Sẵn Sàng Học (Unlocked) */
+.island-card.unlocked {
+  border-color: #0d6efd;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+}
+
+.island-card.unlocked:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(13, 110, 253, 0.2);
+  border-color: #0b5ed7;
+}
+
+/* 3. Trạng Thái: Đã Hoàn Thành (Completed) */
+.island-card.completed {
+  border-color: #198754;
+  background: linear-gradient(180deg, #ffffff 0%, #f0fff4 100%);
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.1);
+}
+
+.island-card.completed:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(25, 135, 84, 0.18);
+}
+
+/* Chi Tiết Nội Dung Bên Trong Thẻ Đảo */
+.island-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.island-icon {
+  font-size: 2.75rem;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+
+.island-card.unlocked:hover .island-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.island-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0.25rem;
+}
+
+.island-category {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+}
+
+.island-description {
+  font-size: 0.9rem;
+  color: #495057;
+  margin-bottom: 1.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Huy hiệu Điểm Số */
+.island-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Responsive điều chỉnh cho màn hình điện thoại */
+@media (max-width: 576px) {
+  .islands-map-container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .student-summary-banner {
+    padding: 1.25rem;
+  }
+
+  .student-summary-banner .stat-value {
+    font-size: 1.35rem;
+  }
+}
