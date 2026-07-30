@@ -3,16 +3,18 @@
  * @description Khởi tạo và cung cấp các dịch vụ Firebase SDK cho hệ thống LMS.
  */
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+// Import Firebase SDK trực tiếp qua CDN chính thức của Google dành cho trình duyệt
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getStorage } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+
 import { firebaseConfig, isFirebaseConfigured } from '../config/firebase-config.js';
 
 // Cảnh báo nếu Firebase chưa được cấu hình credentials thật
 if (!isFirebaseConfigured()) {
   console.warn(
-    '[LMS Firebase Warning]: Cấu hình Firebase chưa hoàn tất hoặc đang dùng Mock Keys. Vui lòng kiểm tra lại file .env!'
+    '[LMS Firebase Warning]: Cấu hình Firebase chưa hoàn tất hoặc đang dùng Mock Keys. Vui lòng kiểm tra lại file .env hoặc firebase-config.js!'
   );
 }
 
