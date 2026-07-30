@@ -3,6 +3,7 @@
  * @description Dịch vụ quản lý, lưu trữ và đồng bộ tiến độ học tập của học sinh trên Firestore.
  */
 
+// Đã cập nhật đường dẫn import sang CDN chuẩn của Firebase
 import { 
   doc, 
   getDoc, 
@@ -13,7 +14,8 @@ import {
   query, 
   where, 
   serverTimestamp 
-} from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
 import { db } from '../core/firebase-init.js';
 import { DB_COLLECTIONS, LESSON_STATUS, ISLAND_STATUS } from '../config/constants.js';
 
@@ -55,10 +57,6 @@ export const getStudentProgress = async (studentId) => {
 
 /**
  * Cập nhật trạng thái hoàn thành của một bài học
- * @param {string} studentId - UID của học sinh
- * @param {string} lessonId - ID bài học
- * @param {string} status - Trạng thái mới (LESSON_STATUS)
- * @returns {Promise<void>}
  */
 export const updateLessonProgress = async (studentId, lessonId, status = LESSON_STATUS.COMPLETED) => {
   try {
@@ -78,12 +76,7 @@ export const updateLessonProgress = async (studentId, lessonId, status = LESSON_
 };
 
 /**
- * Lưu kết quả bài làm quiz của đảo và cập nhật tiến độ, điểm số, mở khóa đảo tiếp theo nếu đạt yêu cầu
- * @param {string} studentId - UID học sinh
- * @param {string} islandId - ID đảo khám phá (e.g., 'island_1', 'island_2')
- * @param {number} score - Điểm số đạt được (Thang điểm 10)
- * @param {Array} answers - Chi tiết câu trả lời
- * @returns {Promise<Object>} Kết quả tiến độ sau khi cập nhật
+ * Lưu kết quả bài làm quiz của đảo và cập nhật tiến độ
  */
 export const saveQuizAttemptAndProgress = async (studentId, islandId, score, answers = []) => {
   try {
@@ -99,18 +92,16 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score, ans
     };
     await setDoc(attemptRef, attemptData);
 
-    // 2. Lấy tiến độ hiện tại của học sinh
+    // 2. Lấy tiến độ hiện tại
     const progressRef = doc(db, DB_COLLECTIONS.STUDENT_PROGRESS, studentId);
     const progressSnap = await getDoc(progressRef);
     
     let currentProgress = progressSnap.exists() ? progressSnap.data() : { islands: {} };
     let islands = currentProgress.islands || {};
 
-    // Cập nhật điểm số đảo hiện tại (lấy điểm cao nhất)
     const currentIsland = islands[islandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
     const bestScore = Math.max(currentIsland.score || 0, score);
     
-    // Đảo hoàn thành nếu đạt điểm >= 5.0
     const isPassed = score >= 5.0;
     const newIslandStatus = isPassed ? ISLAND_STATUS.COMPLETED : ISLAND_STATUS.UNLOCKED;
 
@@ -121,7 +112,7 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score, ans
       completedAt: isPassed ? new Date().toISOString() : currentIsland.completedAt || null
     };
 
-    // 3. Logic mở khóa đảo tiếp theo nếu đảo hiện tại hoàn thành
+    // 3. Logic mở khóa đảo tiếp theo
     if (isPassed) {
       if (islandId === 'island_1' && islands['island_2']?.status === ISLAND_STATUS.LOCKED) {
         islands['island_2'] = { ...islands['island_2'], status: ISLAND_STATUS.UNLOCKED };
@@ -130,7 +121,7 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score, ans
       }
     }
 
-    // 4. Ghi đè/cập nhật lại tiến độ lên Firestore
+    // 4. Cập nhật Firestore
     await setDoc(progressRef, {
       studentId,
       islands,
@@ -138,23 +129,15 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score, ans
       updatedAt: serverTimestamp()
     }, { merge: true });
 
-    return {
-      success: true,
-      bestScore,
-      isPassed,
-      islands
-    };
+    return { success: true, bestScore, isPassed, islands };
   } catch (error) {
-    console.error('[Progress Service] Lỗi khi lưu kết quả quiz và tiến độ:', error);
+    console.error('[Progress Service] Lỗi khi lưu kết quả quiz:', error);
     throw error;
   }
 };
 
 /**
- * Lấy lịch sử các lần làm bài trắc nghiệm của học sinh theo đảo
- * @param {string} studentId - UID học sinh
- * @param {string} islandId - ID đảo
- * @returns {Promise<Array>} Danh sách các lượt làm bài
+ * Lấy lịch sử các lần làm bài trắc nghiệm
  */
 export const getStudentAttemptsByIsland = async (studentId, islandId) => {
   try {
@@ -177,3 +160,4 @@ export const getStudentAttemptsByIsland = async (studentId, islandId) => {
     return [];
   }
 };
+```eof
