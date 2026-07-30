@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions kiểm tra quyền hạn
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isTeacher() {
+      return isSignedIn() && getUserData().role == 'teacher';
+    }
+
+    // 1. Collection Người Dùng (users)
+    match /users/{userId} {
+      // Học sinh xem và sửa profile cá nhân; Giáo viên có thể xem thông tin học sinh
+      allow read: if isSignedIn() && (isOwner(userId) || isTeacher());
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && (isOwner(userId) || isTeacher());
+      allow delete: if isTeacher();
+    }
+
+    // 2. Collection Khóa Học & Đảo Tri Thức (courses)
+    match /courses/{courseId} {
+      // Học sinh & Giáo viên đều xem được khóa học
+      allow read: if isSignedIn();
+      // Chỉ Giáo viên có quyền thêm, sửa, xóa khóa học
+      allow create, update, delete: if isTeacher();
+
+      // Sub-collection Các Đảo Tri Thức (islands)
+      match /islands/{islandId} {
+        allow read: if isSignedIn();
+        allow write: if isTeacher();
+
+        // Sub-collection Bài Tập / Quizzes
+        match /quizzes/{quizId} {
+          allow read: if isSignedIn();
+          allow write: if isTeacher();
+        }
+      }
+    }
+
+    // 3. Collection Tiến Độ Học Tập (progress)
+    match /progress/{progressId} {
+      // Học sinh xem tiến độ của mình, Giáo viên xem tiến độ của tất cả
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isTeacher());
+      allow create, update: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isTeacher());
+      allow delete: if isTeacher();
+    }
+
+    // 4. Collection Lịch Sử Làm Bài (submissions)
+    match /submissions/{submissionId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isTeacher());
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isTeacher();
+    }
+
+    // 5. Collection Giấy Chứng Nhận (certificates)
+    match /certificates/{certId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isTeacher());
+      allow create, update: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isTeacher());
+      allow delete: if isTeacher();
+    }
+
+  }
+}
