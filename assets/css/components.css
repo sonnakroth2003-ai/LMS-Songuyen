@@ -1,1 +1,282 @@
+/**
+ * @file components.css
+ * @description Stylesheet chứa style chung cho tất cả Reusable Components trong ứng dụng.
+ */
 
+/* ==========================================================================
+   1. NAVBAR COMPONENT (navbar.js)
+   ========================================================================== */
+.main-navbar {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.2);
+  padding: 0.75rem 0;
+  transition: all 0.3s ease;
+}
+
+.main-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.main-navbar .navbar-brand img {
+  height: 36px;
+  width: auto;
+}
+
+.main-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 600;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.4rem 0.8rem;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+}
+
+/* ==========================================================================
+   2. MODAL DÙNG CHUNG (modal.js)
+   ========================================================================== */
+.app-modal .modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.app-modal .modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.25rem 1.5rem;
+}
+
+.app-modal .modal-title {
+  font-weight: 700;
+  color: #212529;
+}
+
+.app-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.app-modal .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* ==========================================================================
+   3. THẺ ĐẢO TRI THỨC COMPONENT (island-card.js)
+   ========================================================================== */
+.island-card-component {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.island-card-component .island-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.island-badge-easy {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.island-badge-medium {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.island-badge-hard {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.island-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.island-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0d6efd 0%, #0dcdf0 100%);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* ==========================================================================
+   4. MODAL TRẮC NGHIỆM COMPONENT (quiz-modal.js)
+   ========================================================================== */
+.quiz-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #212529;
+  color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+.quiz-timer-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 1.1rem;
+}
+
+.quiz-timer-box.warning {
+  background: #dc3545;
+  color: #ffffff;
+  animation: pulseWarning 1s infinite;
+}
+
+.quiz-question-item {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e9ecef;
+}
+
+.quiz-question-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #212529;
+  margin-bottom: 1rem;
+}
+
+.quiz-options-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 576px) {
+  .quiz-options-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.quiz-option-label {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.quiz-option-label:hover {
+  border-color: #0d6efd;
+  background-color: #f0f7ff;
+}
+
+.quiz-option-input:checked + .quiz-option-label {
+  border-color: #0d6efd;
+  background-color: #e7f1ff;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.quiz-option-input {
+  display: none;
+}
+
+/* Đáp án đúng/sai khi nộp bài */
+.quiz-option-label.correct {
+  border-color: #198754 !important;
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+}
+
+.quiz-option-label.incorrect {
+  border-color: #dc3545 !important;
+  background-color: #f8d7da !important;
+  color: #842029 !important;
+}
+
+/* ==========================================================================
+   5. BẢNG TIẾN ĐỘ HỌC SINH COMPONENT (student-table.js)
+   ========================================================================== */
+.student-table-component {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.student-table-component th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.student-status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-online {
+  background-color: #198754;
+}
+
+.status-offline {
+  background-color: #adb5bd;
+}
+
+/* Animation Cảnh báo đếm ngược */
+@keyframes pulseWarning {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
