@@ -125,4 +125,3 @@ const getMockQuestionsByIsland = (islandId) => {
   };
   return mockDatabase[islandId] || mockDatabase.island_1;
 };
-```eof
