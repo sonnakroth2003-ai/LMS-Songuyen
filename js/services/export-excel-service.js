@@ -3,12 +3,14 @@
  * @description Dịch vụ xuất báo cáo điểm số và tiến độ học tập của học sinh ra file Excel (.xlsx).
  */
 
+// Đã cập nhật đường dẫn import sang CDN chuẩn của Firebase
 import { 
   collection, 
   getDocs, 
   query, 
   where 
-} from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
 import { db } from '../core/firebase-init.js';
 import { DB_COLLECTIONS, MESSAGES, ROLES } from '../config/constants.js';
 import { calculateAverageScore, getAcademicRank } from './scoring-service.js';
@@ -80,7 +82,7 @@ export const fetchClassReportData = async (classId) => {
 /**
  * Xuất dữ liệu báo cáo điểm ra tệp tin Excel (.xlsx)
  * @param {string} classId - Mã lớp học
- * @param {string} customFileName - Tên file tùy chỉnh (không bắt buộc)
+ * @param {string} customFileName - Tên file tùy chỉnh
  * @returns {Promise<void>}
  */
 export const exportClassReportToExcel = async (classId = 'ALL', customFileName = '') => {
@@ -99,7 +101,7 @@ export const exportClassReportToExcel = async (classId = 'ALL', customFileName =
     // 2. Tạo Sheet từ mảng đối tượng JSON
     const worksheet = window.XLSX.utils.json_to_sheet(reportData);
 
-    // Cấu hình độ rộng các cột tự động (Column Widths)
+    // Cấu hình độ rộng các cột tự động
     const columnWidths = [
       { wch: 6 },  // STT
       { wch: 15 }, // Mã Học Sinh
@@ -128,3 +130,4 @@ export const exportClassReportToExcel = async (classId = 'ALL', customFileName =
     throw error;
   }
 };
+```eof
