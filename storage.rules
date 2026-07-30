@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isLessThan5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // 1. Thư mục Avatar Người Dùng (avatars/{userId})
+    match /avatars/{userId}/{fileName} {
+      // Cho phép mọi người dùng đã đăng nhập đọc avatar
+      allow read: if isSignedIn();
+      // Chỉ chủ sở hữu được ghi/tải lên (yêu cầu file ảnh < 5MB)
+      allow write: if isOwner(userId) && isImage() && isLessThan5MB();
+    }
+
+    // 2. Thư mục Tài Liệu & Ảnh Bài Học / Khóa Học (courses/{courseId})
+    match /courses/{courseId}/{fileName} {
+      // Cho phép học sinh & giáo viên đọc/tải tài liệu
+      allow read: if isSignedIn();
+      // Cho phép chỉnh sửa (upload ảnh/tài liệu) nếu đăng nhập
+      allow write: if isSignedIn() && isLessThan5MB();
+    }
+
+    // 3. Thư mục Giấy Chứng Nhận / File xuất ra (certificates/{userId})
+    match /certificates/{userId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) && isLessThan5MB();
+    }
+
+  }
+}
