@@ -41,7 +41,10 @@ export const registerRoute = (path, renderFn, options = {}) => {
  */
 export const navigateTo = (path) => {
   if (window.location.hash === path) {
-    handleRouteChange();
+    const pathOnly = path.split('?')[0];
+    if (routesMap.has(pathOnly)) {
+      handleRouteChange();
+    }
   } else {
     window.location.hash = path;
   }
@@ -87,13 +90,13 @@ const handleRouteChange = async () => {
   // 1. Trường hợp Route không tồn tại trong hệ thống
   if (!route) {
     console.warn(`[Router] Route không hợp lệ: ${pathOnly}`);
-    if (user) {
-      const redirectPath = user.role === ROLES.TEACHER 
-        ? ROUTES.TEACHER_DASHBOARD 
-        : ROUTES.STUDENT_DASHBOARD;
-      navigateTo(redirectPath);
-    } else {
-      navigateTo(ROUTES.LOGIN);
+    const fallbackPath = user 
+      ? (user.role === ROLES.TEACHER ? ROUTES.TEACHER_DASHBOARD : ROUTES.STUDENT_DASHBOARD)
+      : ROUTES.LOGIN;
+    
+    // Tránh việc tự chuyển hướng về chính nó gây lặp vô hạn
+    if (pathOnly !== fallbackPath) {
+      navigateTo(fallbackPath);
     }
     return;
   }
@@ -105,7 +108,9 @@ const handleRouteChange = async () => {
     // Chưa đăng nhập -> Chuyển về Login
     if (!user) {
       console.warn('[Router] Yêu cầu đăng nhập để truy cập trang này.');
-      navigateTo(ROUTES.LOGIN);
+      if (pathOnly !== ROUTES.LOGIN) {
+        navigateTo(ROUTES.LOGIN);
+      }
       return;
     }
 
@@ -115,7 +120,9 @@ const handleRouteChange = async () => {
       const defaultDashboard = user.role === ROLES.TEACHER 
         ? ROUTES.TEACHER_DASHBOARD 
         : ROUTES.STUDENT_DASHBOARD;
-      navigateTo(defaultDashboard);
+      if (pathOnly !== defaultDashboard) {
+        navigateTo(defaultDashboard);
+      }
       return;
     }
   } else {
@@ -133,7 +140,6 @@ const handleRouteChange = async () => {
   try {
     document.title = route.title;
     
-    // Đưa container về trạng thái loading nhẹ trong khi render
     appContainer.classList.add('route-loading');
     
     const content = await route.render();
@@ -145,7 +151,6 @@ const handleRouteChange = async () => {
       appContainer.appendChild(content);
     }
 
-    // Cuộn lên đầu trang sau khi render xong
     window.scrollTo(0, 0);
   } catch (error) {
     console.error('[Router] Lỗi khi render route:', error);
@@ -164,10 +169,8 @@ const handleRouteChange = async () => {
  * Khởi tạo Bộ điều hướng Router
  */
 export const initRouter = () => {
-  // Lắng nghe sự kiện đổi hash trên trình duyệt
   window.addEventListener('hashchange', handleRouteChange);
 
-  // Xử lý route khởi chạy ban đầu
   if (!window.location.hash) {
     window.location.hash = ROUTES.LOGIN;
   } else {
