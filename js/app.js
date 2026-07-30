@@ -5,7 +5,7 @@
 
 import { store } from './core/store.js';
 import { handleRouting } from './core/router.js';
-import { logoutUser, onAuthStateChangedListener } from './services/auth-service.js';
+import { logoutUser, onAuthStateChangedListener } from './core/auth.js';
 
 /**
  * Render Navbar / Header chung cho toàn ứng dụng
