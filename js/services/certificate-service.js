@@ -185,4 +185,4 @@ export const downloadCertificatePDF = async (elementId = 'certificate-template',
     throw error;
   }
 };
-```eof
+
