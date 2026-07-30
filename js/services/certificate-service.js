@@ -3,12 +3,14 @@
  * @description Dịch vụ kiểm tra điều kiện, cấp và xuất giấy chứng nhận PDF cho học sinh.
  */
 
+// Đã cập nhật đường dẫn import sang CDN chuẩn của Firebase
 import { 
   doc, 
   getDoc, 
   setDoc, 
   serverTimestamp 
-} from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
 import { db } from '../core/firebase-init.js';
 import { DB_COLLECTIONS, MESSAGES } from '../config/constants.js';
 import { 
@@ -183,3 +185,4 @@ export const downloadCertificatePDF = async (elementId = 'certificate-template',
     throw error;
   }
 };
+```eof
