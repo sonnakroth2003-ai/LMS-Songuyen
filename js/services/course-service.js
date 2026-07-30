@@ -112,4 +112,4 @@ export const getQuizQuestionsByLessonId = async (lessonId) => {
   const lesson = await getLessonById(lessonId);
   return lesson?.questions || [];
 };
-```eof
+
