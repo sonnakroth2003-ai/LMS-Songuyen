@@ -7,9 +7,9 @@ import { SCORE_THRESHOLDS, ACADEMIC_RANK, QUIZ_CONFIG } from '../config/constant
 
 /**
  * Tính điểm cho bài làm trắc nghiệm dựa trên số câu trả lời đúng
- * @param {Array<{questionId: string, selectedOption: number|string}>} userAnswers - Danh sách câu trả lời học sinh đã chọn
- * @param {Array<{id: string, correctOption: number|string}>} correctQuestions - Danh sách câu hỏi kèm đáp án đúng
- * @returns {{ score: number, correctCount: number, totalQuestions: number, percentage: number }}
+ * @param {Array} userAnswers - Đáp án học sinh chọn
+ * @param {Array} correctQuestions - Đáp án đúng
+ * @returns {Object} { score, correctCount, totalQuestions, percentage }
  */
 export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
   if (!correctQuestions || correctQuestions.length === 0) {
@@ -19,22 +19,21 @@ export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
   const totalQuestions = correctQuestions.length;
   let correctCount = 0;
 
-  // Bản đồ hóa đáp án đúng theo questionId để tra cứu O(1)
+  // Bản đồ hóa đáp án đúng theo questionId để tra cứu nhanh
   const answerMap = new Map();
   correctQuestions.forEach(q => {
-    answerMap.set(String(q.id), q.correctOption);
+    answerMap.set(String(q.id), String(q.correctOption));
   });
 
   // Đếm số câu trả lời đúng
   userAnswers.forEach(ans => {
-    const correctAnswer = answerMap.get(String(ans.questionId));
-    if (correctAnswer !== undefined && String(ans.selectedOption) === String(correctAnswer)) {
+    if (answerMap.get(String(ans.questionId)) === String(ans.selectedOption)) {
       correctCount++;
     }
   });
 
   // Quy đổi về thang điểm QUIZ_CONFIG.MAX_SCORE (mặc định 10)
-  const score = Number(((correctCount / totalQuestions) * QUIZ_CONFIG.MAX_SCORE).toFixed(1));
+  const score = parseFloat(((correctCount / totalQuestions) * QUIZ_CONFIG.MAX_SCORE).toFixed(1));
   const percentage = Math.round((correctCount / totalQuestions) * 100);
 
   return {
@@ -46,51 +45,38 @@ export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
 };
 
 /**
- * Tính điểm trung bình (GPA) từ danh sách điểm của các đảo khám phá
- * @param {Array<number>} scores - Danh sách điểm số các bài làm đảo
- * @returns {number} Điểm trung bình làm tròn 1 chữ số thập phân
+ * Tính điểm trung bình (GPA) từ danh sách điểm của các đảo
  */
 export const calculateAverageScore = (scores = []) => {
   const validScores = scores.filter(s => typeof s === 'number' && !isNaN(s));
   if (validScores.length === 0) return 0;
 
   const sum = validScores.reduce((acc, curr) => acc + curr, 0);
-  return Number((sum / validScores.length).toFixed(1));
+  return parseFloat((sum / validScores.length).toFixed(1));
 };
 
 /**
  * Xác định xếp loại học lực dựa trên điểm số trung bình
- * @param {number} averageScore - Điểm trung bình (Thang điểm 10)
- * @returns {Object} Đối tượng chứa thông tin xếp loại (key, label, badgeColor)
  */
 export const getAcademicRank = (averageScore = 0) => {
-  const score = Number(averageScore);
+  const score = parseFloat(averageScore);
 
-  if (score >= SCORE_THRESHOLDS.EXCELLENT) {
-    return ACADEMIC_RANK.EXCELLENT;
-  }
-  if (score >= SCORE_THRESHOLDS.GOOD) {
-    return ACADEMIC_RANK.GOOD;
-  }
-  if (score >= SCORE_THRESHOLDS.FAIR) {
-    return ACADEMIC_RANK.FAIR;
-  }
+  if (score >= SCORE_THRESHOLDS.EXCELLENT) return ACADEMIC_RANK.EXCELLENT;
+  if (score >= SCORE_THRESHOLDS.GOOD) return ACADEMIC_RANK.GOOD;
+  if (score >= SCORE_THRESHOLDS.FAIR) return ACADEMIC_RANK.FAIR;
+  
   return ACADEMIC_RANK.NOT_QUALIFIED;
 };
 
 /**
- * Kiểm tra học sinh có đủ điều kiện nhận giấy chứng nhận không (ĐTB >= 6.5)
- * @param {number} averageScore - Điểm trung bình tích lũy
- * @returns {boolean}
+ * Kiểm tra học sinh có đủ điều kiện nhận chứng nhận không
  */
 export const isEligibleForCertificate = (averageScore = 0) => {
-  return Number(averageScore) >= SCORE_THRESHOLDS.FAIR;
+  return parseFloat(averageScore) >= SCORE_THRESHOLDS.FAIR;
 };
 
 /**
- * Tạo thẻ HTML Badge hiển thị xếp loại học lực với màu sắc tương ứng
- * @param {number} averageScore - Điểm trung bình
- * @returns {string} Chuỗi HTML đại diện cho badge
+ * Tạo thẻ HTML Badge hiển thị xếp loại học lực
  */
 export const renderRankBadge = (averageScore = 0) => {
   const rank = getAcademicRank(averageScore);
@@ -100,3 +86,4 @@ export const renderRankBadge = (averageScore = 0) => {
     </span>
   `;
 };
+```eof
