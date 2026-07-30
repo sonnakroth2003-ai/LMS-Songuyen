@@ -1,137 +1,144 @@
 /**
- * @file auth.js
- * @description Quản lý đăng nhập, đăng xuất và phân quyền người dùng trong ứng dụng.
+ * @file app.js
+ * @description Entry point chính khởi chạy ứng dụng web học tập "Đảo Tri Thức - Toán 6".
  */
 
-import { 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { auth, db } from './firebase-init.js';
-import { ROLES, DB_COLLECTIONS, MESSAGES } from '../config/constants.js';
+import { store } from './core/store.js';
+import { initRouter } from './core/router.js';
+import { logout as logoutUser, initAuthObserver as onAuthStateChangedListener } from './core/auth.js';
 
 /**
- * State lưu trữ thông tin người dùng hiện tại trong bộ nhớ (Memory Cache)
- * @type {Object|null}
+ * Render Navbar / Header chung cho toàn ứng dụng
  */
-let currentUserProfile = null;
+const renderNavbar = () => {
+  const navContainer = document.querySelector('#navbar-container');
+  if (!navContainer) return;
 
-/**
- * Đăng nhập người dùng bằng Email và Mật khẩu
- * @param {string} email 
- * @param {string} password 
- * @returns {Promise<Object>} Dữ liệu profile người dùng từ Firestore
- */
-export const login = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+  const state = store.getState();
+  const currentUser = state.currentUser;
 
-    // Lấy thông tin chi tiết người dùng từ collection 'users'
-    const profile = await fetchUserProfile(user.uid);
-    if (!profile) {
-      throw new Error('Không tìm thấy thông tin tài khoản trên hệ thống database.');
-    }
+  // Kiểm tra vai trò giáo viên
+  const isTeacher = currentUser?.role === 'teacher';
 
-    currentUserProfile = {
-      uid: user.uid,
-      email: user.email,
-      ...profile
-    };
+  navContainer.innerHTML = `
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="#/">
+          <span class="fs-4">🏝️</span>
+          <span>Đảo Tri Thức - Toán 6</span>
+        </a>
 
-    return currentUserProfile;
-  } catch (error) {
-    console.error('[Auth Service] Login error:', error);
-    throw new Error(MESSAGES?.AUTH?.LOGIN_FAILED || 'Đăng nhập thất bại.');
-  }
-};
+        <button 
+          class="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-/**
- * Đăng xuất người dùng khỏi hệ thống
- * @returns {Promise<void>}
- */
-export const logout = async () => {
-  try {
-    await signOut(auth);
-    currentUserProfile = null;
-  } catch (error) {
-    console.error('[Auth Service] Logout error:', error);
-    throw error;
-  }
-};
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            ${
+              currentUser
+                ? isTeacher
+                  ? `
+                    <li class="nav-item">
+                      <a class="nav-link" href="#/teacher-dashboard">📋 Quản Lý Lớp Học</a>
+                    </li>
+                  `
+                  : `
+                    <li class="nav-item">
+                      <a class="nav-link" href="#/student-dashboard">🗺️ Bản Đồ Đảo</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="#/certificate">🎓 Chứng Nhận</a>
+                    </li>
+                  `
+                : ''
+            }
+          </ul>
 
-/**
- * Lấy thông tin hồ sơ chi tiết người dùng từ Firestore
- * @param {string} uid - Firebase Auth User ID
- * @returns {Promise<Object|null>}
- */
-export const fetchUserProfile = async (uid) => {
-  try {
-    const userDocRef = doc(db, DB_COLLECTIONS.USERS, uid);
-    const userDocSnap = await getDoc(userDocRef);
+          <div class="d-flex align-items-center gap-3">
+            ${
+              currentUser
+                ? `
+                  <div class="text-white text-end d-none d-md-block">
+                    <div class="fw-bold fs-6">${currentUser.fullName || currentUser.username || 'Người dùng'}</div>
+                    <small class="badge bg-light text-dark text-capitalize">${isTeacher ? '👨‍🏫 Giáo viên' : '👨‍🎓 Học sinh'}</small>
+                  </div>
+                  <button id="btn-global-logout" class="btn btn-outline-light btn-sm">
+                    🚪 Đăng xuất
+                  </button>
+                `
+                : `
+                  <a href="#/login" class="btn btn-light text-primary fw-bold btn-sm px-3">
+                    🔑 Đăng nhập
+                  </a>
+                `
+            }
+          </div>
+        </div>
+      </div>
+    </nav>
+  `;
 
-    if (userDocSnap.exists()) {
-      return userDocSnap.data();
-    }
-    return null;
-  } catch (error) {
-    console.error('[Auth Service] Fetch profile error:', error);
-    return null;
-  }
-};
-
-/**
- * Lấy thông tin người dùng đang đăng nhập trong Cache
- * @returns {Object|null}
- */
-export const getCurrentUser = () => {
-  return currentUserProfile;
-};
-
-/**
- * Kiểm tra xem người dùng hiện tại có phải Giáo viên không
- * @returns {boolean}
- */
-export const isTeacher = () => {
-  return currentUserProfile?.role === ROLES.TEACHER;
-};
-
-/**
- * Kiểm tra xem người dùng hiện tại có phải Học sinh không
- * @returns {boolean}
- */
-export const isStudent = () => {
-  return currentUserProfile?.role === ROLES.STUDENT;
-};
-
-/**
- * Lắng nghe sự thay đổi trạng thái xác thực từ Firebase Auth
- * @param {Function} callback - Hàm thực thi sau khi khôi phục xong trạng thái Auth
- */
-export const initAuthObserver = (callback) => {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      // Nếu đã đăng nhập, khôi phục lại profile nếu cache chưa có
-      if (!currentUserProfile || currentUserProfile.uid !== user.uid) {
-        const profile = await fetchUserProfile(user.uid);
-        if (profile) {
-          currentUserProfile = {
-            uid: user.uid,
-            email: user.email,
-            ...profile
-          };
-        } else {
-          currentUserProfile = null;
-        }
+  // Gắn sự kiện nút Đăng xuất
+  const logoutBtn = navContainer.querySelector('#btn-global-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?')) {
+        await logoutUser();
+        window.location.hash = '#/login';
       }
-    } else {
-      currentUserProfile = null;
-    }
-
-    if (typeof callback === 'function') {
-      callback(currentUserProfile);
-    }
-  });
+    });
+  }
 };
+
+/**
+ * Render Footer chung cho ứng dụng
+ */
+const renderFooter = () => {
+  const footerContainer = document.querySelector('#footer-container');
+  if (!footerContainer) return;
+
+  footerContainer.innerHTML = `
+    <footer class="bg-dark text-white-50 py-4 mt-auto border-top">
+      <div class="container text-center">
+        <p class="mb-1 text-white fw-semibold">Ứng Dụng Học Tập Gamification Toán 6 - Đảo Tri Thức</p>
+        <small>© ${new Date().getFullYear()} Chương trình GDPT 2018. Mọi quyền được bảo lưu.</small>
+      </div>
+    </footer>
+  `;
+};
+
+/**
+ * Khởi tạo ứng dụng
+ */
+const initApp = () => {
+  console.log('[App] Đang khởi chạy ứng dụng Đảo Tri Thức...');
+
+  // Render các thành phần tĩnh chung
+  renderFooter();
+
+  // Đăng ký lắng nghe sự kiện thay đổi state trong Store để re-render Navbar
+  store.subscribe(() => {
+    renderNavbar();
+  });
+
+  // Lắng nghe trạng thái xác thực từ Firebase thông qua initAuthObserver
+  if (typeof onAuthStateChangedListener === 'function') {
+    onAuthStateChangedListener((user) => {
+      store.setState({ currentUser: user });
+      renderNavbar();
+    });
+  } else {
+    renderNavbar();
+  }
+
+  // Khởi tạo bộ định tuyến (Router sẽ tự động lắng nghe hashchange và xử lý route đầu tiên)
+  initRouter();
+};
+
+// Kích hoạt ứng dụng khi DOM đã sẵn sàng
+document.addEventListener('DOMContentLoaded', initApp);
