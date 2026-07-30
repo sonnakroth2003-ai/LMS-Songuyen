@@ -4,8 +4,16 @@
  */
 
 import { store } from './core/store.js';
-import { initRouter } from './core/router.js';
+import { initRouter, registerRoute } from './core/router.js';
 import { logout as logoutUser, initAuthObserver as onAuthStateChangedListener } from './core/auth.js';
+import { ROUTES, ROLES } from './config/constants.js';
+
+// Import các trang từ thư mục js/pages/
+import { renderLoginPage } from './pages/login-page.js';
+import { renderStudentDashboardPage } from './pages/student-dashboard-page.js';
+import { renderTeacherDashboardPage } from './pages/teacher-dashboard-page.js';
+import { renderCertificatePage } from './pages/certificate-page.js';
+import { renderLessonDetailPage } from './pages/lesson-detail-page.js';
 
 /**
  * Render Navbar / Header chung cho toàn ứng dụng
@@ -17,7 +25,7 @@ const renderNavbar = () => {
   const state = store.getState();
   const currentUser = state.currentUser;
 
-  const isTeacher = currentUser?.role === 'teacher';
+  const isTeacher = currentUser?.role === ROLES.TEACHER || currentUser?.role === 'teacher';
 
   navContainer.innerHTML = `
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
@@ -87,7 +95,7 @@ const renderNavbar = () => {
     logoutBtn.addEventListener('click', async () => {
       if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?')) {
         await logoutUser();
-        window.location.hash = '#/login';
+        window.location.hash = ROUTES.LOGIN || '#/login';
       }
     });
   }
@@ -118,6 +126,13 @@ const initApp = () => {
 
   renderFooter();
 
+  // Đăng ký các đường dẫn (Routes) cho hệ thống Router
+  registerRoute(ROUTES.LOGIN || '#/login', renderLoginPage, { allowedRoles: null, title: 'Đăng nhập - Đảo Tri Thức' });
+  registerRoute(ROUTES.STUDENT_DASHBOARD || '#/student-dashboard', renderStudentDashboardPage, { allowedRoles: [ROLES.STUDENT || 'student'], title: 'Bản Đồ Đảo - Toán 6' });
+  registerRoute(ROUTES.TEACHER_DASHBOARD || '#/teacher-dashboard', renderTeacherDashboardPage, { allowedRoles: [ROLES.TEACHER || 'teacher'], title: 'Quản Lý Lớp Học - Đảo Tri Thức' });
+  registerRoute('#/certificate', renderCertificatePage, { allowedRoles: [ROLES.STUDENT || 'student'], title: 'Chứng Nhận Hoàn Thành' });
+  registerRoute('#/lesson', renderLessonDetailPage, { allowedRoles: [ROLES.STUDENT || 'student'], title: 'Bài Học - Đảo Tri Thức' });
+
   store.subscribe(() => {
     renderNavbar();
   });
@@ -131,6 +146,7 @@ const initApp = () => {
     renderNavbar();
   }
 
+  // Khởi chạy hệ thống điều hướng
   initRouter();
 };
 
