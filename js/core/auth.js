@@ -1,1 +1,137 @@
+/**
+ * @file auth.js
+ * @description Quản lý đăng nhập, đăng xuất và phân quyền người dùng trong ứng dụng.
+ */
 
+import { 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase-init.js';
+import { ROLES, DB_COLLECTIONS, MESSAGES } from '../config/constants.js';
+
+/**
+ * State lưu trữ thông tin người dùng hiện tại trong bộ nhớ (Memory Cache)
+ * @type {Object|null}
+ */
+let currentUserProfile = null;
+
+/**
+ * Đăng nhập người dùng bằng Email và Mật khẩu
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<Object>} Dữ liệu profile người dùng từ Firestore
+ */
+export const login = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Lấy thông tin chi tiết người dùng từ collection 'users'
+    const profile = await fetchUserProfile(user.uid);
+    if (!profile) {
+      throw new Error('Không tìm thấy thông tin tài khoản trên hệ thống database.');
+    }
+
+    currentUserProfile = {
+      uid: user.uid,
+      email: user.email,
+      ...profile
+    };
+
+    return currentUserProfile;
+  } catch (error) {
+    console.error('[Auth Service] Login error:', error);
+    throw new Error(MESSAGES.AUTH.LOGIN_FAILED);
+  }
+};
+
+/**
+ * Đăng xuất người dùng khỏi hệ thống
+ * @returns {Promise<void>}
+ */
+export const logout = async () => {
+  try {
+    await signOut(auth);
+    currentUserProfile = null;
+  } catch (error) {
+    console.error('[Auth Service] Logout error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy thông tin hồ sơ chi tiết người dùng từ Firestore
+ * @param {string} uid - Firebase Auth User ID
+ * @returns {Promise<Object|null>}
+ */
+export const fetchUserProfile = async (uid) => {
+  try {
+    const userDocRef = doc(db, DB_COLLECTIONS.USERS, uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (userDocSnap.exists()) {
+      return userDocSnap.data();
+    }
+    return null;
+  } catch (error) {
+    console.error('[Auth Service] Fetch profile error:', error);
+    return null;
+  }
+};
+
+/**
+ * Lấy thông tin người dùng đang đăng nhập trong Cache
+ * @returns {Object|null}
+ */
+export const getCurrentUser = () => {
+  return currentUserProfile;
+};
+
+/**
+ * Kiểm tra xem người dùng hiện tại có phải Giáo viên không
+ * @returns {boolean}
+ */
+export const isTeacher = () => {
+  return currentUserProfile?.role === ROLES.TEACHER;
+};
+
+/**
+ * Kiểm tra xem người dùng hiện tại có phải Học sinh không
+ * @returns {boolean}
+ */
+export const isStudent = () => {
+  return currentUserProfile?.role === ROLES.STUDENT;
+};
+
+/**
+ * Lắng nghe sự thay đổi trạng thái xác thực từ Firebase Auth
+ * @param {Function} callback - Hàm thực thi sau khi khôi phục xong trạng thái Auth
+ */
+export const initAuthObserver = (callback) => {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Nếu đã đăng nhập, khôi phục lại profile nếu cache chưa có
+      if (!currentUserProfile || currentUserProfile.uid !== user.uid) {
+        const profile = await fetchUserProfile(user.uid);
+        if (profile) {
+          currentUserProfile = {
+            uid: user.uid,
+            email: user.email,
+            ...profile
+          };
+        } else {
+          currentUserProfile = null;
+        }
+      }
+    } else {
+      currentUserProfile = null;
+    }
+
+    if (typeof callback === 'function') {
+      callback(currentUserProfile);
+    }
+  });
+};
