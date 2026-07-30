@@ -7,8 +7,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
-} from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { auth, db } from './firebase-init.js';
 import { ROLES, DB_COLLECTIONS, MESSAGES } from '../config/constants.js';
 
@@ -44,7 +44,7 @@ export const login = async (email, password) => {
     return currentUserProfile;
   } catch (error) {
     console.error('[Auth Service] Login error:', error);
-    throw new Error(MESSAGES.AUTH.LOGIN_FAILED);
+    throw new Error(MESSAGES?.AUTH?.LOGIN_FAILED || 'Đăng nhập thất bại.');
   }
 };
 
