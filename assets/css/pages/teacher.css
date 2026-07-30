@@ -1,1 +1,180 @@
+/**
+ * @file teacher.css
+ * @description Stylesheet dành riêng cho Trang Bảng Điều Khiển Quản Lý Lớp Học của Giáo Viên.
+ */
 
+/* Banner Thống Kê Tổng Quan Dành Cho Giáo Viên */
+.teacher-summary-banner {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  box-shadow: 0 10px 25px rgba(30, 60, 114, 0.2);
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-summary-banner::after {
+  content: "👨‍🏫";
+  position: absolute;
+  right: 10px;
+  bottom: -15px;
+  font-size: 7.5rem;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.teacher-stat-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: transform 0.25s ease;
+}
+
+.teacher-stat-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.teacher-stat-card .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.teacher-stat-card .stat-title {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Thanh Bộ Lọc & Tìm Kiếm Học Sinh */
+.teacher-filter-bar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  margin-bottom: 1.75rem;
+}
+
+.teacher-filter-bar .form-control,
+.teacher-filter-bar .form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.6rem 1rem;
+}
+
+.teacher-filter-bar .form-control:focus,
+.teacher-filter-bar .form-select:focus {
+  border-color: #2a5298;
+  box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.15);
+}
+
+/* Nút Xuất Báo Cáo Excel */
+.btn-export-excel {
+  background-color: #198754;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(25, 135, 84, 0.2);
+  transition: all 0.25s ease;
+}
+
+.btn-export-excel:hover {
+  background-color: #157347;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(25, 135, 84, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Bảng Quản Lý Tiến Độ Lớp Học */
+.teacher-table-container {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.teacher-table {
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+.teacher-table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #dee2e6;
+  padding: 1rem 0.75rem;
+  white-space: nowrap;
+}
+
+.teacher-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.teacher-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.teacher-table td {
+  padding: 0.9rem 0.75rem;
+  color: #212529;
+  font-size: 0.925rem;
+}
+
+/* Các Badge trạng thái học sinh */
+.badge-score {
+  font-size: 0.85rem;
+  padding: 0.35em 0.65em;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badge-score-good {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.badge-score-average {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+
+.badge-score-low {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+/* Responsive cho bảng thiết bị nhỏ */
+@media (max-width: 768px) {
+  .teacher-summary-banner {
+    padding: 1.5rem 1rem;
+  }
+
+  .teacher-stat-card .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .teacher-filter-bar {
+    padding: 1rem;
+  }
+}
