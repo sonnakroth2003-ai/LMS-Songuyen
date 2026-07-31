@@ -51,7 +51,8 @@ export const renderLessonDetailPage = async (container, params = {}) => {
   container.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>`;
 
   try {
-    const lesson = await getLessonById(lessonId.toUpperCase().replace('_', 'ISLAND_'));
+    // Sử dụng nguyên ID truyền vào, service sẽ tự format
+    const lesson = await getLessonById(lessonId);
     const progressData = await getStudentProgress(store.getState().currentUser?.uid);
     const islandProgress = progressData?.islands?.[lessonId] || {};
 
