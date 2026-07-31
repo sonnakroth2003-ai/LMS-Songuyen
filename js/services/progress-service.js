@@ -24,9 +24,7 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
   try {
     const data = getStudentProgress(studentId);
     
-    // Đảm bảo islandId luôn khớp với key trong ISLANDS (VD: ISLAND_1, ISLAND_2)
     const normalizedIslandId = islandId.toUpperCase().replace('-', '_');
-    
     if (!data.islands) data.islands = {};
     
     const currentIsland = data.islands[normalizedIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
@@ -43,9 +41,9 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
       completedAt: (isPassed && !currentIsland.completedAt) ? new Date().toISOString() : currentIsland.completedAt
     };
 
-    // Mở khóa đảo tiếp theo dựa trên danh sách key từ ISLANDS
-    const islandKeys = Object.keys(ISLANDS);
-    const currentIndex = islandKeys.findIndex(key => key === normalizedIslandId);
+    // Đảm bảo lấy danh sách ID đảo theo đúng thứ tự nếu có thể, hoặc dùng Object.keys
+    const islandKeys = ['ISLAND_1', 'ISLAND_2', 'ISLAND_3']; 
+    const currentIndex = islandKeys.indexOf(normalizedIslandId);
     
     if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
       const nextIslandKey = islandKeys[currentIndex + 1];
