@@ -71,7 +71,12 @@ export const getAllLessons = async () => {
 export const getLessonById = async (lessonId) => {
   try {
     if (!lessonId) return null;
-    return MOCK_LESSONS_DATA[lessonId] || null;
+    
+    // Đảm bảo ID được xử lý nhất quán (viết hoa, gạch dưới)
+    const formattedId = lessonId.toUpperCase().replace('-', '_');
+    
+    // Thử lấy trực tiếp, nếu không thấy thì thử với prefix chuẩn
+    return MOCK_LESSONS_DATA[formattedId] || MOCK_LESSONS_DATA[`ISLAND_${formattedId.replace('ISLAND_', '')}`] || null;
   } catch (error) {
     console.error(`[CourseService] Lỗi khi lấy bài học ID ${lessonId}:`, error);
     return null;
