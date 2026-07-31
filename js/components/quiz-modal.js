@@ -6,7 +6,7 @@ export const showQuizModal = async (islandId, title) => {
   const questions = await getQuizQuestionsByLessonId(islandId);
   
   if (!questions || questions.length === 0) {
-    alert("Chưa có câu hỏi cho bài học này!");
+    console.warn("Chưa có câu hỏi cho bài học này!");
     return;
   }
 
