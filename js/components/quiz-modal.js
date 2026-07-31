@@ -1,9 +1,24 @@
-/**
+import { showCustomModal } from './modal.js';
+import { ROUTES } from '../config/constants.js';
+import { getQuizQuestionsByLessonId } from '../services/course-service.js';
+
  * @file quiz-modal.js
  * @description Component hiển thị Popup tổng kết và chúc mừng kết quả bài thi trắc nghiệm trong LMS Toán 6.
  */
 
 import { ROUTES } from '../config/constants.js';
+
+/**
+ * Hàm mới: Bao bọc để khớp với tên hàm mà lesson-detail-page.js đang gọi
+ */
+export const showQuizModal = async (islandId, title) => {
+  const questions = await getQuizQuestionsByLessonId(islandId);
+  // Ở đây bạn có thể gọi logic render modal quiz trắc nghiệm thực tế
+  console.log(`Đang mở quiz cho ${islandId}:`, questions);
+  
+  // Gọi hàm result để test modal nếu cần:
+  showQuizResultModal({ islandName: title, isPassed: true });
+};
 
 /**
  * Hiển thị Modal Kết Quả Bài Thi Trắc Nghiệm
