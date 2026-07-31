@@ -1,72 +1,54 @@
-import { MESSAGES, ISLANDS } from '../config/constants.js';
+import { MESSAGES } from '../config/constants.js';
 import { calculateAverageScore, getAcademicRank } from './scoring-service.js';
 
-export const fetchClassReportData = async (classId) => {
+/**
+ * @file export-excel-service.js
+ * @description Dịch vụ hỗ trợ xuất dữ liệu tiến độ học tập của học sinh ra file Excel (.xlsx).
+ */
+
+/**
+ * Xuất dữ liệu học sinh ra file Excel
+ * @param {Array} studentsData - Dữ liệu thô từ TeacherService
+ */
+export const exportStudentsReportToExcel = async (studentsData) => {
   try {
-    const mockStudents = [
-      { id: 'student_dang_ngoc_son', fullName: 'Đặng Ngọc Sơn', studentCode: 'HS001', classId: '6A1' },
-      { id: 'student_nguyen_van_a', fullName: 'Nguyễn Văn A', studentCode: 'HS002', classId: '6A1' }
-    ];
+    if (!studentsData || studentsData.length === 0) {
+      throw new Error(MESSAGES.ERROR.NO_DATA_TO_EXPORT);
+    }
 
-    const reportData = mockStudents.map((student, index) => {
-      const progressRaw = localStorage.getItem(`dkt_progress_${student.id}`);
-      const studentProgress = progressRaw ? JSON.parse(progressRaw) : { islands: {} };
-      const islands = studentProgress.islands || {};
-
-      const islandKeys = Object.keys(ISLANDS || { ISLAND_1: 'island_1', ISLAND_2: 'island_2', ISLAND_3: 'island_3' });
-      const scores = islandKeys.map(key => islands[key.toLowerCase()]?.score ?? 0);
-      
-      const avgScore = calculateAverageScore(scores);
-      const rank = getAcademicRank(avgScore);
+    const exportData = studentsData.map((student) => {
+      const islands = student.progress?.islands || {};
+      const scores = Object.values(islands).map(i => i.score || 0);
+      const avg = calculateAverageScore(scores);
+      const rank = getAcademicRank(avg);
 
       return {
-        'STT': index + 1,
-        'Mã Học Sinh': student.studentCode,
-        'Họ và Tên': student.fullName,
-        'Lớp': student.classId,
-        'Đảo 1': scores[0] || 0,
-        'Đảo 2': scores[1] || 0,
-        'Đảo 3': scores[2] || 0,
-        'Điểm Trung Bình': avgScore,
-        'Xếp Loại': rank.label
+        'Mã học sinh': student.studentCode || 'N/A',
+        'Họ và tên': student.fullName || 'Học sinh',
+        'Điểm Đảo 1': islands.island_1?.score || 0,
+        'Điểm Đảo 2': islands.island_2?.score || 0,
+        'Điểm Đảo 3': islands.island_3?.score || 0,
+        'Điểm Trung bình': avg,
+        'Xếp loại': rank.label
       };
     });
 
-    return reportData;
-  } catch (error) {
-    console.error('[Export Excel Service] Lỗi khi tạo dữ liệu báo cáo:', error);
-    return [];
-  }
-};
-
-export const exportClassReportToExcel = async (classId = 'ALL', customFileName = '') => {
-  try {
-    if (typeof window.XLSX === 'undefined') {
-      throw new Error('Thư viện SheetJS (XLSX) chưa được tải.');
+    // Giả định thư viện XLSX đã được load qua script tag trong index.html
+    if (typeof XLSX === 'undefined') {
+      throw new Error("Thư viện SheetJS (XLSX) chưa được tải!");
     }
 
-    const reportData = await fetchClassReportData(classId);
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo Học tập");
 
-    if (!reportData || reportData.length === 0) {
-      throw new Error('Không có dữ liệu học sinh để xuất báo cáo.');
-    }
-
-    const worksheet = window.XLSX.utils.json_to_sheet(reportData);
+    // Tạo tên file theo thời gian
+    const fileName = `Bao_Cao_Hoc_Tap_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '_')}.xlsx`;
     
-    worksheet['!cols'] = [
-      { wch: 6 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, 
-      { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 14 }
-    ];
-
-    const workbook = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Bang_Diem_LMS');
-
-    const finalFileName = customFileName || `Bao_Cao_Diem_LMS_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    window.XLSX.writeFile(workbook, finalFileName);
-    
-    console.log(MESSAGES.EXPORT.SUCCESS);
+    XLSX.writeFile(workbook, fileName);
+    return true;
   } catch (error) {
-    console.error('[Export Excel Service] Lỗi khi xuất file Excel:', error);
-    alert(error.message);
+    console.error('[ExportExcelService] Lỗi khi xuất Excel:', error);
+    throw error;
   }
 };
