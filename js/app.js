@@ -1,23 +1,14 @@
-/**
- * @file app.js
- * @description Entry point chính khởi chạy ứng dụng web học tập "Đảo Tri Thức - Toán 6".
- */
-
 import { store } from './core/store.js';
 import { initRouter, registerRoute } from './core/router.js';
-import { logout as logoutUser, initAuthObserver as onAuthStateChangedListener } from './core/auth.js';
+import { logoutUser, checkAuthStatus } from './core/auth.js';
 import { ROUTES, ROLES } from './config/constants.js';
 
-// Import các trang
 import { renderLoginPage } from './pages/login-page.js';
 import { renderStudentDashboardPage } from './pages/student-dashboard-page.js';
 import { renderTeacherDashboardPage } from './pages/teacher-dashboard-page.js';
 import { renderCertificatePage } from './pages/certificate-page.js';
 import { renderLessonDetailPage } from './pages/lesson-detail-page.js';
 
-/**
- * Render Navbar chính
- */
 const renderNavbar = () => {
   const navContainer = document.querySelector('#navbar-container');
   if (!navContainer) return;
@@ -33,11 +24,9 @@ const renderNavbar = () => {
           <span class="fs-4">🏝️</span>
           <span>Đảo Tri Thức</span>
         </a>
-
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             ${currentUser ? (isTeacher ? `
@@ -47,7 +36,6 @@ const renderNavbar = () => {
               <li class="nav-item"><a class="nav-link" href="#/certificate">🎓 Chứng Nhận</a></li>
             `) : ''}
           </ul>
-
           <div class="d-flex align-items-center gap-3">
             ${currentUser ? `
               <div class="text-white text-end d-none d-md-block">
@@ -67,17 +55,13 @@ const renderNavbar = () => {
   const logoutBtn = navContainer.querySelector('#btn-global-logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-      if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-        await logoutUser();
-        window.location.hash = ROUTES.LOGIN;
-      }
+      await logoutUser();
+      store.setState({ currentUser: null });
+      window.location.hash = ROUTES.LOGIN;
     });
   }
 };
 
-/**
- * Render Footer chung
- */
 const renderFooter = () => {
   const footerContainer = document.querySelector('#footer-container');
   if (!footerContainer) return;
@@ -91,27 +75,23 @@ const renderFooter = () => {
   `;
 };
 
-/**
- * Khởi tạo ứng dụng
- */
-const initApp = () => {
+const initApp = async () => {
   renderFooter();
 
   // Đăng ký các Routes
-  registerRoute(ROUTES.LOGIN, renderLoginPage, { allowedRoles: null, title: 'Đăng nhập' });
+  registerRoute(ROUTES.LOGIN, renderLoginPage, { title: 'Đăng nhập' });
   registerRoute(ROUTES.STUDENT_DASHBOARD, renderStudentDashboardPage, { allowedRoles: [ROLES.STUDENT], title: 'Bản Đồ Đảo' });
   registerRoute(ROUTES.TEACHER_DASHBOARD, renderTeacherDashboardPage, { allowedRoles: [ROLES.TEACHER], title: 'Quản Lý Lớp' });
   registerRoute('#/certificate', renderCertificatePage, { allowedRoles: [ROLES.STUDENT], title: 'Chứng Nhận' });
   registerRoute('#/lesson', renderLessonDetailPage, { allowedRoles: [ROLES.STUDENT], title: 'Bài Học' });
 
-  store.subscribe(renderNavbar);
-
-  if (typeof onAuthStateChangedListener === 'function') {
-    onAuthStateChangedListener((user) => {
-      store.setState({ currentUser: user });
-    });
+  // Kiểm tra đăng nhập (Học sinh cũ hoặc phiên làm việc)
+  const user = await checkAuthStatus();
+  if (user) {
+    store.setState({ currentUser: user });
   }
-  
+
+  store.subscribe(renderNavbar);
   renderNavbar();
   initRouter();
 };
