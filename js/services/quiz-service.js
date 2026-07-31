@@ -49,9 +49,9 @@ export const getQuestionsByIsland = async (islandId, randomize = true) => {
     if (!islandId) throw new Error('Island ID không hợp lệ.');
 
     const questionsList = getMockQuestionsByIsland(islandId);
+    // Sử dụng hằng số từ cấu hình để đảm bảo đồng bộ
     const limit = QUIZ_CONFIG.QUESTIONS_PER_ISLAND || 5;
     
-    // Trộn và giới hạn số lượng câu hỏi
     const processedList = randomize ? shuffleArray(questionsList) : questionsList;
     return processedList.slice(0, limit);
   } catch (error) {
@@ -59,15 +59,12 @@ export const getQuestionsByIsland = async (islandId, randomize = true) => {
     return [];
   }
 };
-
 export const submitQuizAttempt = async (studentId, islandId, userAnswers = [], originalQuestions = []) => {
   try {
     if (!studentId || !islandId) throw new Error('Thông tin nộp bài không đầy đủ.');
     
-    // Tính toán điểm số
     const scoreResult = calculateQuizScore(userAnswers, originalQuestions);
     
-    // Lưu kết quả vào tiến độ
     const progressResult = await saveQuizAttemptAndProgress(
       studentId,
       islandId,
