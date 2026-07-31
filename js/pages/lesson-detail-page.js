@@ -71,7 +71,7 @@ export const renderLessonDetailPage = async (container, params = {}) => {
     container.querySelector('#btn-back-to-dashboard')?.addEventListener('click', () => { window.location.hash = '#/student-dashboard'; });
     
     container.querySelector('#btn-start-quiz')?.addEventListener('click', () => {
-      // Sử dụng đúng hàm showQuizModal đã tạo
+      // Hàm này đã tồn tại nhờ export mới ở quiz-modal.js
       showQuizModal(lessonId, lesson.title);
     });
 
