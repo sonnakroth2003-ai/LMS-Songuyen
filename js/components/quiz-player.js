@@ -5,6 +5,7 @@ import { store } from '../core/store.js';
 
 export const startQuizSession = async (islandId, title) => {
   const questions = await getQuizQuestionsByLessonId(islandId);
+  
   if (!questions || questions.length === 0) {
     alert("Chưa có câu hỏi cho bài học này!");
     return;
@@ -12,6 +13,7 @@ export const startQuizSession = async (islandId, title) => {
 
   const modalEl = document.createElement('div');
   modalEl.className = 'modal fade';
+  modalEl.id = 'quiz-active-modal';
   modalEl.innerHTML = `
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
