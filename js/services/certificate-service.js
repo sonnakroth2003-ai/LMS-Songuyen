@@ -1,43 +1,43 @@
 /**
  * @file certificate-service.js
- * @description Dịch vụ quản lý chứng nhận học tập.
+ * @description Dịch vụ quản lý chứng nhận học tập (Mock version cho LocalStorage).
  */
-
-import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { db } from '../core/firebase-init.js';
-import { DB_COLLECTIONS } from '../config/constants.js';
 
 /**
- * Lấy chứng nhận của học sinh (nếu đã có)
+ * Lấy chứng nhận của học sinh từ LocalStorage
  */
 export const getCertificateByStudentId = async (studentId) => {
-  const certRef = doc(db, DB_COLLECTIONS.CERTIFICATES, studentId);
-  const certSnap = await getDoc(certRef);
-  return certSnap.exists() ? certSnap.data() : null;
+  try {
+    const certData = localStorage.getItem(`dkt_cert_${studentId}`);
+    return certData ? JSON.parse(certData) : null;
+  } catch (error) {
+    console.error('[CertificateService] Lỗi khi lấy chứng nhận:', error);
+    return null;
+  }
 };
 
 /**
- * Hàm này thay thế cho generateCertificateForStudent để khớp với file certificate-page.js
+ * Tạo chứng nhận cho học sinh và lưu vào LocalStorage
  */
 export const generateCertificateForStudent = async (studentId, studentInfo) => {
   try {
-    const certRef = doc(db, DB_COLLECTIONS.CERTIFICATES, studentId);
-    
-    // Tạo dữ liệu chứng nhận mới
+    // Tạo dữ liệu chứng nhận giả lập
     const newCertificate = {
       studentId,
-      studentName: studentInfo.studentName,
-      studentCode: studentInfo.studentCode,
+      studentName: studentInfo.studentName || 'Học sinh',
+      studentCode: studentInfo.studentCode || 'N/A',
       courseName: 'Toán học Lớp 6',
       issueDate: new Date().toLocaleDateString('vi-VN'),
       certificateId: 'CERT-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      createdAt: serverTimestamp()
+      createdAt: new Date().toISOString()
     };
 
-    await setDoc(certRef, newCertificate);
+    // Lưu vào LocalStorage thay vì Firestore
+    localStorage.setItem(`dkt_cert_${studentId}`, JSON.stringify(newCertificate));
+    
     return newCertificate;
   } catch (error) {
-    console.error('Lỗi khi tạo chứng nhận:', error);
+    console.error('[CertificateService] Lỗi khi tạo chứng nhận:', error);
     return null;
   }
 };
