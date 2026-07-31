@@ -2,27 +2,13 @@ import { showCustomModal } from './modal.js';
 import { ROUTES } from '../config/constants.js';
 import { getQuizQuestionsByLessonId } from '../services/course-service.js';
 
- * @file quiz-modal.js
- * @description Component hiển thị Popup tổng kết và chúc mừng kết quả bài thi trắc nghiệm trong LMS Toán 6.
- */
-
-import { ROUTES } from '../config/constants.js';
-
-/**
- * Hàm mới: Bao bọc để khớp với tên hàm mà lesson-detail-page.js đang gọi
- */
 export const showQuizModal = async (islandId, title) => {
   const questions = await getQuizQuestionsByLessonId(islandId);
-  // Ở đây bạn có thể gọi logic render modal quiz trắc nghiệm thực tế
   console.log(`Đang mở quiz cho ${islandId}:`, questions);
   
-  // Gọi hàm result để test modal nếu cần:
   showQuizResultModal({ islandName: title, isPassed: true });
 };
 
-/**
- * Hiển thị Modal Kết Quả Bài Thi Trắc Nghiệm
- */
 export const showQuizResultModal = ({
   score = 0,
   correctCount = 0,
@@ -54,24 +40,11 @@ export const showQuizResultModal = ({
         <h2 class="result-title fw-bold">${resultTitle}</h2>
         <span class="badge ${badgeClass} mb-3">${islandName}</span>
       </div>
-
-      <div class="result-score-banner">
-        ${score}<span class="score-max">/10</span>
-      </div>
-
+      <div class="result-score-banner">${score}<span class="score-max">/10</span></div>
       <div class="result-stats-grid">
-        <div class="result-stat-card">
-          <div>✅</div>
-          <div class="fw-bold">${correctCount}/${totalQuestions}</div>
-          <small>Số câu đúng (${percentage}%)</small>
-        </div>
-        <div class="result-stat-card">
-          <div>⏱️</div>
-          <div class="fw-bold">${timeFormatted}</div>
-          <small>Thời gian làm</small>
-        </div>
+        <div class="result-stat-card"><div>✅</div><div class="fw-bold">${correctCount}/${totalQuestions}</div><small>Số câu đúng (${percentage}%)</small></div>
+        <div class="result-stat-card"><div>⏱️</div><div class="fw-bold">${timeFormatted}</div><small>Thời gian làm</small></div>
       </div>
-
       <div class="result-actions-group mt-4 d-flex gap-2 justify-content-center">
         <button class="btn btn-secondary btn-retry-quiz">🔄 Làm Lại</button>
         <a href="#/student-dashboard" class="btn btn-primary">🏝️ Về Bản Đồ</a>
@@ -79,18 +52,13 @@ export const showQuizResultModal = ({
     </div>
   `;
 
-  // Tạo Modal thủ công bằng Bootstrap API nếu không có showCustomModal
   const modalId = 'result-modal';
   let modalEl = document.getElementById(modalId);
   if (!modalEl) {
     modalEl = document.createElement('div');
     modalEl.id = modalId;
     modalEl.className = 'modal fade';
-    modalEl.innerHTML = `
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content"><div class="modal-body"></div></div>
-      </div>
-    `;
+    modalEl.innerHTML = '<div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body"></div></div></div>';
     document.body.appendChild(modalEl);
   }
 
