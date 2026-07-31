@@ -1,11 +1,24 @@
+import { getStudentProgress } from './progress-service.js';
+import { isEligibleForCertificate } from './scoring-service.js';
+
 /**
  * @file certificate-service.js
  * @description Dịch vụ quản lý chứng nhận học tập (Mock version cho LocalStorage).
  */
 
 /**
- * Lấy chứng nhận của học sinh từ LocalStorage
+ * Kiểm tra xem học sinh có đủ điều kiện nhận chứng nhận không
  */
+export const checkEligibilityForCertificate = async (studentId) => {
+  const progress = await getStudentProgress(studentId);
+  if (!progress || !progress.islands) return false;
+
+  const scores = Object.values(progress.islands).map(i => i.score || 0);
+  const avg = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+  
+  return isEligibleForCertificate(avg);
+};
+
 export const getCertificateByStudentId = async (studentId) => {
   try {
     const certData = localStorage.getItem(`dkt_cert_${studentId}`);
@@ -16,12 +29,14 @@ export const getCertificateByStudentId = async (studentId) => {
   }
 };
 
-/**
- * Tạo chứng nhận cho học sinh và lưu vào LocalStorage
- */
 export const generateCertificateForStudent = async (studentId, studentInfo) => {
   try {
-    // Tạo dữ liệu chứng nhận giả lập
+    // Kiểm tra điều kiện trước khi cấp chứng nhận
+    const isEligible = await checkEligibilityForCertificate(studentId);
+    if (!isEligible) {
+      throw new Error('Học sinh chưa đủ điều kiện điểm trung bình để nhận chứng nhận.');
+    }
+
     const newCertificate = {
       studentId,
       studentName: studentInfo.studentName || 'Học sinh',
@@ -32,12 +47,10 @@ export const generateCertificateForStudent = async (studentId, studentInfo) => {
       createdAt: new Date().toISOString()
     };
 
-    // Lưu vào LocalStorage thay vì Firestore
     localStorage.setItem(`dkt_cert_${studentId}`, JSON.stringify(newCertificate));
-    
     return newCertificate;
   } catch (error) {
     console.error('[CertificateService] Lỗi khi tạo chứng nhận:', error);
-    return null;
+    throw error; // Ném lỗi để UI hiển thị thông báo cho học sinh
   }
 };
