@@ -7,9 +7,6 @@ import { store } from '../core/store.js';
 import { loginUser } from '../core/auth.js';
 import { ROUTES } from '../config/constants.js';
 
-/**
- * Render chuỗi HTML cho trang Đăng Nhập
- */
 const renderLoginFormHTML = () => {
   return `
     <div class="container py-5">
@@ -39,13 +36,13 @@ const renderLoginFormHTML = () => {
                 </div>
 
                 <div class="mb-3">
-                  <label for="username" class="form-label fw-bold" id="username-label">Tài khoản / Mã học sinh</label>
-                  <input type="text" class="form-control form-control-lg" id="username" placeholder="Nhập tài khoản..." required>
+                  <label for="username" class="form-label fw-bold" id="username-label">Tên học sinh</label>
+                  <input type="text" class="form-control form-control-lg" id="username" placeholder="Nhập tên..." required>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-4" id="password-group">
                   <label for="password" class="form-label fw-bold">Mật khẩu</label>
-                  <input type="password" class="form-control form-control-lg" id="password" placeholder="Nhập mật khẩu..." required>
+                  <input type="password" class="form-control form-control-lg" id="password" placeholder="Nhập mật khẩu...">
                 </div>
 
                 <button type="submit" id="btn-submit-login" class="btn btn-primary btn-lg w-100 shadow-sm">🚀 Đăng Nhập</button>
@@ -58,24 +55,27 @@ const renderLoginFormHTML = () => {
   `;
 };
 
-/**
- * Render và khởi tạo sự kiện trang Đăng Nhập
- */
 export const renderLoginPage = (container) => {
   if (!container) return;
   container.innerHTML = renderLoginFormHTML();
 
   const form = container.querySelector('#login-form');
-  const errorAlert = container.querySelector('#login-error-alert');
-  const submitBtn = container.querySelector('#btn-submit-login');
-  const roleInputs = container.querySelectorAll('input[name="role"]');
+  const passwordGroup = container.querySelector('#password-group');
   const usernameLabel = container.querySelector('#username-label');
   const usernameInput = container.querySelector('#username');
+  const errorAlert = container.querySelector('#login-error-alert');
+  const submitBtn = container.querySelector('#btn-submit-login');
 
-  // Đổi nhãn theo vai trò
-  roleInputs.forEach(input => {
+  // Đổi nhãn và ẩn/hiện mật khẩu theo vai trò
+  container.querySelectorAll('input[name="role"]').forEach(input => {
     input.addEventListener('change', (e) => {
-      usernameLabel.textContent = e.target.value === 'teacher' ? 'Email / Tài khoản Giáo viên' : 'Tài khoản / Mã học sinh';
+      if (e.target.value === 'teacher') {
+        usernameLabel.textContent = 'Email / Tài khoản Giáo viên';
+        passwordGroup.classList.remove('d-none');
+      } else {
+        usernameLabel.textContent = 'Tên học sinh';
+        passwordGroup.classList.add('d-none');
+      }
     });
   });
 
@@ -83,26 +83,19 @@ export const renderLoginPage = (container) => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = usernameInput.value.trim();
-    const password = container.querySelector('#password').value;
+    const password = container.querySelector('#password').value || '123';
     const selectedRole = container.querySelector('input[name="role"]:checked').value;
-
-    if (!username || !password) {
-      errorAlert.textContent = 'Vui lòng nhập đầy đủ thông tin!';
-      errorAlert.classList.remove('d-none');
-      return;
-    }
 
     try {
       submitBtn.disabled = true;
       submitBtn.innerHTML = '⏳ Đang đăng nhập...';
 
+      // Gọi hàm login từ auth.js (đã có sẵn logic cho Giáo viên và Học sinh)
       const user = await loginUser(username, password, selectedRole);
       
       if (user) {
         store.setState({ currentUser: user });
         window.location.hash = user.role === 'teacher' ? ROUTES.TEACHER_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
-      } else {
-        throw new Error('Sai tài khoản hoặc mật khẩu!');
       }
     } catch (err) {
       errorAlert.textContent = err.message;
@@ -113,4 +106,3 @@ export const renderLoginPage = (container) => {
     }
   });
 };
-
