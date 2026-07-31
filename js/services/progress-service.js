@@ -5,9 +5,6 @@
 
 import { ISLAND_STATUS, ISLANDS } from '../config/constants.js';
 
-/**
- * Lấy dữ liệu tiến độ của học sinh từ LocalStorage
- */
 export const getStudentProgress = (studentId) => {
   const data = localStorage.getItem(`dkt_progress_${studentId}`);
   if (data) {
@@ -17,45 +14,41 @@ export const getStudentProgress = (studentId) => {
   return {
     studentId,
     islands: {
-      island_1: { score: 0, status: ISLAND_STATUS.UNLOCKED }
+      ISLAND_1: { score: 0, status: ISLAND_STATUS.UNLOCKED }
     },
     updatedAt: new Date().toISOString()
   };
 };
 
-/**
- * Lưu kết quả làm bài và cập nhật tiến độ
- */
 export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => {
   try {
     const data = getStudentProgress(studentId);
-    const cleanIslandId = islandId.toLowerCase().replace('-', '_');
+    
+    // Đảm bảo islandId luôn khớp với key trong ISLANDS (VD: ISLAND_1, ISLAND_2)
+    const normalizedIslandId = islandId.toUpperCase().replace('-', '_');
     
     if (!data.islands) data.islands = {};
     
-    // Lấy dữ liệu cũ hoặc mặc định
-    const currentIsland = data.islands[cleanIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
+    const currentIsland = data.islands[normalizedIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
     
-    // TÍNH TOÁN LẠI ĐIỂM CAO NHẤT: Luôn lấy giá trị lớn nhất giữa điểm cũ và điểm mới
     const bestScore = Math.max(currentIsland.score || 0, score);
     const isPassed = score >= 5.0; 
     
-    // Cập nhật đảo hiện tại với điểm tốt nhất mới
-    data.islands[cleanIslandId] = {
+    data.islands[normalizedIslandId] = {
       ...currentIsland,
-      score: bestScore, // Lưu điểm cao nhất
+      score: bestScore,
       status: (isPassed || currentIsland.status === ISLAND_STATUS.COMPLETED) 
                ? ISLAND_STATUS.COMPLETED 
                : ISLAND_STATUS.UNLOCKED,
       completedAt: (isPassed && !currentIsland.completedAt) ? new Date().toISOString() : currentIsland.completedAt
     };
 
-    // Mở khóa đảo tiếp theo nếu đã hoàn thành
+    // Mở khóa đảo tiếp theo dựa trên danh sách key từ ISLANDS
     const islandKeys = Object.keys(ISLANDS);
-    const currentIndex = islandKeys.findIndex(key => key.toLowerCase() === cleanIslandId);
+    const currentIndex = islandKeys.findIndex(key => key === normalizedIslandId);
     
     if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
-      const nextIslandKey = islandKeys[currentIndex + 1].toLowerCase();
+      const nextIslandKey = islandKeys[currentIndex + 1];
       if (!data.islands[nextIslandKey]) {
         data.islands[nextIslandKey] = { score: 0, status: ISLAND_STATUS.UNLOCKED };
       }
