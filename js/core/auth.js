@@ -1,144 +1,82 @@
-/**
- * @file auth.js
- * @description Quản lý đăng nhập, đăng xuất và phân quyền người dùng trong ứng dụng.
- */
+import { ROLES, MESSAGES } from '../config/constants.js';
 
-import { 
-  signInWithEmailAndPassword, 
-  signOut as fbSignOut, 
-  onAuthStateChanged 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { auth, db } from './firebase-init.js';
-import { ROLES, DB_COLLECTIONS, MESSAGES } from '../config/constants.js';
-
-/**
- * State lưu trữ thông tin người dùng hiện tại trong bộ nhớ (Memory Cache)
- * @type {Object|null}
- */
 let currentUserProfile = null;
 
-/**
- * Đăng nhập người dùng bằng Email và Mật khẩu
- * @param {string} email 
- * @param {string} password 
- * @returns {Promise<Object>} Dữ liệu profile người dùng từ Firestore
- */
-export const login = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    const profile = await fetchUserProfile(user.uid);
-    if (!profile) {
-      throw new Error('Không tìm thấy thông tin tài khoản trên hệ thống database.');
-    }
-
-    currentUserProfile = {
-      uid: user.uid,
-      email: user.email,
-      ...profile
-    };
-
-    return currentUserProfile;
-  } catch (error) {
-    console.error('[Auth Service] Login error:', error);
-    throw new Error(MESSAGES?.AUTH?.LOGIN_FAILED || 'Đăng nhập thất bại.');
-  }
+// TÀI KHOẢN GIÁO VIÊN CỐ ĐỊNH (Bạn có thể đổi tùy ý)
+const TEACHER_CREDENTIALS = {
+  email: 'giaovien@dkt.com',
+  password: '123'
 };
 
-// Alias loginUser để tương thích với login-page.js
-export const loginUser = login;
-
 /**
- * Đăng xuất người dùng khỏi hệ thống (Export tên logoutUser để tương thích với app.js)
- * @returns {Promise<void>}
+ * Đăng nhập xử lý cho cả Học sinh (tên) và Giáo viên (email/pass)
  */
-export const logoutUser = async () => {
+export const login = async (username, password, role) => {
   try {
-    await fbSignOut(auth);
-    currentUserProfile = null;
+    if (role === 'teacher') {
+      // 1. Logic Giáo viên
+      if (username === TEACHER_CREDENTIALS.email && password === TEACHER_CREDENTIALS.password) {
+        currentUserProfile = {
+          uid: 'teacher_admin_01',
+          email: username,
+          role: ROLES.TEACHER,
+          fullName: 'Giáo viên Quản trị'
+        };
+        return currentUserProfile;
+      }
+      throw new Error('Sai tài khoản hoặc mật khẩu Giáo viên!');
+    } else {
+      // 2. Logic Học sinh (Chỉ cần tên là vào học)
+      if (!username || username.length < 2) {
+        throw new Error('Vui lòng nhập tên học sinh hợp lệ!');
+      }
+      
+      // Tạo profile học sinh dựa trên tên
+      currentUserProfile = {
+        uid: `student_${username.toLowerCase().replace(/\s/g, '_')}`,
+        email: `${username.toLowerCase()}@student.dkt`,
+        role: ROLES.STUDENT,
+        fullName: username
+      };
+      
+      // Lưu vào localStorage để lần sau vào lại web vẫn nhớ tên
+      localStorage.setItem('dkt_student_name', username);
+      
+      return currentUserProfile;
+    }
   } catch (error) {
-    console.error('[Auth Service] Logout error:', error);
+    console.error('[Auth Service] Login error:', error);
     throw error;
   }
 };
 
-// Giữ lại alias logout để phòng các file khác gọi
+export const loginUser = login;
+
+export const logoutUser = async () => {
+  currentUserProfile = null;
+  localStorage.removeItem('dkt_student_name');
+};
+
 export const logout = logoutUser;
 
-/**
- * Lấy thông tin hồ sơ chi tiết người dùng từ Firestore
- * @param {string} uid - Firebase Auth User ID
- * @returns {Promise<Object|null>}
- */
-export const fetchUserProfile = async (uid) => {
-  try {
-    const userDocRef = doc(db, DB_COLLECTIONS.USERS, uid);
-    const userDocSnap = await getDoc(userDocRef);
+export const getCurrentUser = () => currentUserProfile;
 
-    if (userDocSnap.exists()) {
-      return userDocSnap.data();
-    }
-    return null;
-  } catch (error) {
-    console.error('[Auth Service] Fetch profile error:', error);
-    return null;
+export const isTeacher = () => currentUserProfile?.role === ROLES.TEACHER;
+
+export const isStudent = () => currentUserProfile?.role === ROLES.STUDENT;
+
+/**
+ * Tự động đăng nhập lại nếu là học sinh đã từng vào web
+ */
+export const checkAuthStatus = async () => {
+  const savedStudent = localStorage.getItem('dkt_student_name');
+  if (savedStudent) {
+    currentUserProfile = {
+      uid: `student_${savedStudent.toLowerCase().replace(/\s/g, '_')}`,
+      email: `${savedStudent.toLowerCase()}@student.dkt`,
+      role: ROLES.STUDENT,
+      fullName: savedStudent
+    };
   }
-};
-
-/**
- * Lấy thông tin người dùng đang đăng nhập trong Cache
- * @returns {Object|null}
- */
-export const getCurrentUser = () => {
   return currentUserProfile;
 };
-
-/**
- * Kiểm tra xem người dùng hiện tại có phải Giáo viên không
- * @returns {boolean}
- */
-export const isTeacher = () => {
-  return currentUserProfile?.role === ROLES.TEACHER;
-};
-
-/**
- * Kiểm tra xem người dùng hiện tại có phải Học sinh không
- * @returns {boolean}
- */
-export const isStudent = () => {
-  return currentUserProfile?.role === ROLES.STUDENT;
-};
-
-/**
- * Lắng nghe sự thay đổi trạng thái xác thực từ Firebase Auth (Export tên onAuthStateChangedListener cho app.js)
- * @param {Function} callback - Hàm thực thi sau khi khôi phục xong trạng thái Auth
- */
-export const onAuthStateChangedListener = (callback) => {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      if (!currentUserProfile || currentUserProfile.uid !== user.uid) {
-        const profile = await fetchUserProfile(user.uid);
-        if (profile) {
-          currentUserProfile = {
-            uid: user.uid,
-            email: user.email,
-            ...profile
-          };
-        } else {
-          currentUserProfile = null;
-        }
-      }
-    } else {
-      currentUserProfile = null;
-    }
-
-    if (typeof callback === 'function') {
-      callback(currentUserProfile);
-    }
-  });
-};
-
-// Giữ lại alias initAuthObserver
-export const initAuthObserver = onAuthStateChangedListener;
