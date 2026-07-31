@@ -62,19 +62,7 @@ const MOCK_LESSONS_DATA = {
  * Lấy danh sách tất cả các Đảo Tri Thức / Bài học
  */
 export const getAllLessons = async () => {
-  try {
-    if (ISLANDS && Object.keys(ISLANDS).length > 0) {
-      return Object.keys(ISLANDS).map((key) => ({
-        id: key,
-        ...ISLANDS[key],
-        ...(MOCK_LESSONS_DATA[key] || {})
-      }));
-    }
-    return Object.values(MOCK_LESSONS_DATA);
-  } catch (error) {
-    console.error('[CourseService] Lỗi khi lấy danh sách bài học:', error);
-    return Object.values(MOCK_LESSONS_DATA);
-  }
+  return Object.values(MOCK_LESSONS_DATA);
 };
 
 /**
@@ -83,22 +71,7 @@ export const getAllLessons = async () => {
 export const getLessonById = async (lessonId) => {
   try {
     if (!lessonId) return null;
-
-    const mockLesson = MOCK_LESSONS_DATA[lessonId];
-    const configLesson = ISLANDS ? ISLANDS[lessonId] : null;
-
-    if (!mockLesson && !configLesson) return null;
-
-    return {
-      id: lessonId,
-      title: configLesson?.name || mockLesson?.title || `Bài học ${lessonId}`,
-      description: configLesson?.description || mockLesson?.description || '',
-      category: mockLesson?.category || 'Đảo Tri Thức',
-      summary: mockLesson?.summary || '',
-      contentHtml: mockLesson?.contentHtml || `<p>Nội dung đang được cập nhật...</p>`,
-      examples: mockLesson?.examples || [],
-      questions: mockLesson?.questions || []
-    };
+    return MOCK_LESSONS_DATA[lessonId] || null;
   } catch (error) {
     console.error(`[CourseService] Lỗi khi lấy bài học ID ${lessonId}:`, error);
     return null;
@@ -112,4 +85,3 @@ export const getQuizQuestionsByLessonId = async (lessonId) => {
   const lesson = await getLessonById(lessonId);
   return lesson?.questions || [];
 };
-
