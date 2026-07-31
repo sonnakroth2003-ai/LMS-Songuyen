@@ -1,68 +1,35 @@
-/**
- * @file progress-service.js
- * @description Quản lý lưu trữ và cập nhật tiến độ học tập của học sinh.
- */
-
-import { ISLAND_STATUS, ISLANDS } from '../config/constants.js';
+import { ISLAND_STATUS } from '../config/constants.js';
 
 export const getStudentProgress = (studentId) => {
   const data = localStorage.getItem(`dkt_progress_${studentId}`);
-  if (data) {
-    return JSON.parse(data);
-  }
-  
-  return {
+  return data ? JSON.parse(data) : {
     studentId,
-    islands: {
-      ISLAND_1: { score: 0, status: ISLAND_STATUS.UNLOCKED }
-    },
-    updatedAt: new Date().toISOString()
+    islands: { ISLAND_1: { score: 0, status: ISLAND_STATUS.UNLOCKED } }
   };
 };
 
 export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => {
-  try {
-    const data = getStudentProgress(studentId);
-    
-    // Đảm bảo cấu trúc islands luôn tồn tại
-    if (!data.islands) data.islands = {};
-    
-    const normalizedIslandId = islandId.toUpperCase().replace('-', '_');
-    const currentIsland = data.islands[normalizedIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
-    
-    const bestScore = Math.max(currentIsland.score || 0, score);
-    const isPassed = score >= 5.0; 
-    
-    data.islands[normalizedIslandId] = {
-      ...currentIsland,
-      score: bestScore,
-      status: (isPassed || currentIsland.status === ISLAND_STATUS.COMPLETED) 
-               ? ISLAND_STATUS.COMPLETED 
-               : ISLAND_STATUS.UNLOCKED,
-      completedAt: (isPassed && !currentIsland.completedAt) ? new Date().toISOString() : currentIsland.completedAt
-    };
+  const data = getStudentProgress(studentId);
+  const islandKey = islandId.toUpperCase(); // Đảm bảo key trùng khớp
+  
+  data.islands[islandKey] = {
+    ...data.islands[islandKey],
+    score: Math.max(data.islands[islandKey]?.score || 0, score),
+    status: score >= 5 ? ISLAND_STATUS.COMPLETED : ISLAND_STATUS.UNLOCKED
+  };
 
-    // Định nghĩa thứ tự các đảo
-    const islandKeys = ['ISLAND_1', 'ISLAND_2', 'ISLAND_3']; 
-    const currentIndex = islandKeys.indexOf(normalizedIslandId);
-    
-    // Logic mở khóa đảo kế tiếp chặt chẽ hơn
-    if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
-      const nextIslandKey = islandKeys[currentIndex + 1];
-      const nextIsland = data.islands[nextIslandKey] || { score: 0, status: ISLAND_STATUS.LOCKED };
-      
-      data.islands[nextIslandKey] = { 
-        ...nextIsland,
-        status: ISLAND_STATUS.UNLOCKED 
-      };
+  // Mở khóa đảo tiếp theo nếu qua bài
+  if (score >= 5) {
+    const islandKeys = ['ISLAND_1', 'ISLAND_2', 'ISLAND_3'];
+    const idx = islandKeys.indexOf(islandKey);
+    if (idx !== -1 && idx < islandKeys.length - 1) {
+      const nextKey = islandKeys[idx + 1];
+      if (!data.islands[nextKey] || data.islands[nextKey].status === ISLAND_STATUS.LOCKED) {
+        data.islands[nextKey] = { score: 0, status: ISLAND_STATUS.UNLOCKED };
+      }
     }
-
-    data.updatedAt = new Date().toISOString();
-    localStorage.setItem(`dkt_progress_${studentId}`, JSON.stringify(data));
-    
-    return { success: true, bestScore, isPassed, islands: data.islands };
-  } catch (error) {
-    console.error('[ProgressService] Lỗi khi lưu tiến độ:', error);
-    throw error;
   }
+
+  localStorage.setItem(`dkt_progress_${studentId}`, JSON.stringify(data));
+  return { success: true, isPassed: score >= 5, islands: data.islands };
 };
