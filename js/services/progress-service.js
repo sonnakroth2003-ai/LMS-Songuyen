@@ -41,14 +41,19 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
       completedAt: (isPassed && !currentIsland.completedAt) ? new Date().toISOString() : currentIsland.completedAt
     };
 
-    // Đảm bảo lấy danh sách ID đảo theo đúng thứ tự nếu có thể, hoặc dùng Object.keys
+    // Định nghĩa thứ tự các đảo
     const islandKeys = ['ISLAND_1', 'ISLAND_2', 'ISLAND_3']; 
     const currentIndex = islandKeys.indexOf(normalizedIslandId);
     
+    // Nếu vượt qua bài kiểm tra, mở khóa đảo kế tiếp
     if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
       const nextIslandKey = islandKeys[currentIndex + 1];
-      if (!data.islands[nextIslandKey]) {
-        data.islands[nextIslandKey] = { score: 0, status: ISLAND_STATUS.UNLOCKED };
+      if (!data.islands[nextIslandKey] || data.islands[nextIslandKey].status === ISLAND_STATUS.LOCKED) {
+        data.islands[nextIslandKey] = { 
+          ...data.islands[nextIslandKey], 
+          score: data.islands[nextIslandKey]?.score || 0, 
+          status: ISLAND_STATUS.UNLOCKED 
+        };
       }
     }
 
