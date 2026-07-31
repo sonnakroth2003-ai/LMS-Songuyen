@@ -1,7 +1,6 @@
 import { startQuizSession } from './quiz-player.js';
 
 export const showQuizModal = async (islandId, title) => {
-  // Gọi hàm bắt đầu phiên Quiz từ file mới tạo
   await startQuizSession(islandId, title);
 };
 
