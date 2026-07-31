@@ -3,16 +3,7 @@
  * @description Dịch vụ quản lý ngân hàng câu hỏi, xáo trộn đề thi và xử lý nộp bài trắc nghiệm.
  */
 
-// Đã cập nhật đường dẫn import sang CDN chuẩn của Firebase
-import { 
-  collection, 
-  getDocs, 
-  query, 
-  where 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-import { db } from '../core/firebase-init.js';
-import { DB_COLLECTIONS, QUIZ_CONFIG, MESSAGES } from '../config/constants.js';
+import { QUIZ_CONFIG, MESSAGES, DB_COLLECTIONS } from '../config/constants.js';
 import { calculateQuizScore } from './scoring-service.js';
 import { saveQuizAttemptAndProgress } from './progress-service.js';
 
@@ -26,80 +17,6 @@ const shuffleArray = (array = []) => {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
-};
-
-/**
- * Lấy danh sách câu hỏi trắc nghiệm của một Đảo khám phá từ Firestore
- */
-export const getQuestionsByIsland = async (islandId, randomize = true) => {
-  try {
-    if (!islandId) throw new Error('Island ID không hợp lệ.');
-
-    const questionsRef = collection(db, DB_COLLECTIONS.QUESTIONS);
-    const q = query(questionsRef, where('islandId', '==', islandId));
-    const querySnapshot = await getDocs(q);
-
-    const rawQuestions = [];
-    querySnapshot.forEach((docSnap) => {
-      rawQuestions.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
-    });
-
-    let questionsList = rawQuestions.length > 0 ? rawQuestions : getMockQuestionsByIsland(islandId);
-
-    if (randomize) {
-      questionsList = shuffleArray(questionsList);
-    }
-
-    const limit = QUIZ_CONFIG.QUESTIONS_PER_ISLAND || 3;
-    return questionsList.slice(0, limit);
-  } catch (error) {
-    console.error('[Quiz Service] Lỗi khi lấy danh sách câu hỏi:', error);
-    return getMockQuestionsByIsland(islandId).slice(0, QUIZ_CONFIG.QUESTIONS_PER_ISLAND);
-  }
-};
-
-/**
- * Xử lý nộp bài làm trắc nghiệm của học sinh
- */
-export const submitQuizAttempt = async (studentId, islandId, userAnswers = [], originalQuestions = []) => {
-  try {
-    if (!studentId || !islandId) {
-      throw new Error('Thông tin nộp bài không đầy đủ.');
-    }
-
-    if (!userAnswers || userAnswers.length === 0) {
-      throw new Error(MESSAGES.QUIZ.MUST_ANSWER_ALL);
-    }
-
-    // 1. Tính toán điểm số sử dụng scoring-service
-    const scoreResult = calculateQuizScore(userAnswers, originalQuestions);
-
-    // 2. Lưu kết quả bài làm và cập nhật tiến độ
-    const progressResult = await saveQuizAttemptAndProgress(
-      studentId,
-      islandId,
-      scoreResult.score,
-      userAnswers
-    );
-
-    return {
-      success: true,
-      message: MESSAGES.QUIZ.SUBMIT_SUCCESS,
-      score: scoreResult.score,
-      correctCount: scoreResult.correctCount,
-      totalQuestions: scoreResult.totalQuestions,
-      percentage: scoreResult.percentage,
-      isPassed: progressResult.isPassed,
-      bestScore: progressResult.bestScore,
-      islands: progressResult.islands
-    };
-  } catch (error) {
-    console.error('[Quiz Service] Lỗi khi xử lý nộp bài quiz:', error);
-    throw error;
-  }
 };
 
 /**
@@ -124,4 +41,60 @@ const getMockQuestionsByIsland = (islandId) => {
     ]
   };
   return mockDatabase[islandId] || mockDatabase.island_1;
+};
+
+/**
+ * Lấy danh sách câu hỏi trắc nghiệm
+ */
+export const getQuestionsByIsland = async (islandId, randomize = true) => {
+  try {
+    if (!islandId) throw new Error('Island ID không hợp lệ.');
+
+    // Chế độ phát triển: Dùng luôn Mock data để đảm bảo app chạy mượt mà
+    // Khi deploy thật, bạn có thể uncomment phần Firestore logic bên dưới
+    let questionsList = getMockQuestionsByIsland(islandId);
+
+    if (randomize) {
+      questionsList = shuffleArray(questionsList);
+    }
+
+    const limit = QUIZ_CONFIG.QUESTIONS_PER_ISLAND || 3;
+    return questionsList.slice(0, limit);
+  } catch (error) {
+    console.error('[Quiz Service] Lỗi khi lấy danh sách câu hỏi:', error);
+    return getMockQuestionsByIsland(islandId).slice(0, QUIZ_CONFIG.QUESTIONS_PER_ISLAND);
+  }
+};
+
+/**
+ * Xử lý nộp bài làm trắc nghiệm của học sinh
+ */
+export const submitQuizAttempt = async (studentId, islandId, userAnswers = [], originalQuestions = []) => {
+  try {
+    if (!studentId || !islandId) throw new Error('Thông tin nộp bài không đầy đủ.');
+    if (!userAnswers || userAnswers.length === 0) throw new Error(MESSAGES.QUIZ.MUST_ANSWER_ALL);
+
+    const scoreResult = calculateQuizScore(userAnswers, originalQuestions);
+    const progressResult = await saveQuizAttemptAndProgress(
+      studentId,
+      islandId,
+      scoreResult.score,
+      userAnswers
+    );
+
+    return {
+      success: true,
+      message: MESSAGES.QUIZ.SUBMIT_SUCCESS,
+      score: scoreResult.score,
+      correctCount: scoreResult.correctCount,
+      totalQuestions: scoreResult.totalQuestions,
+      percentage: scoreResult.percentage,
+      isPassed: progressResult.isPassed,
+      bestScore: progressResult.bestScore,
+      islands: progressResult.islands
+    };
+  } catch (error) {
+    console.error('[Quiz Service] Lỗi khi xử lý nộp bài quiz:', error);
+    throw error;
+  }
 };
