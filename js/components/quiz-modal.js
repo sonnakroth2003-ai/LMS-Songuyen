@@ -69,8 +69,13 @@ export const showQuizModal = async (islandId, title) => {
     }
 
     const result = await submitQuizAttempt(store.getState().currentUser?.uid, islandId, userAnswers, questions);
+    
+    // Xóa modal khỏi DOM sau khi animation kết thúc
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      modalEl.remove();
+    });
     bootstrapModal.hide();
-    modalEl.remove();
+    
     showQuizResultModal({ ...result, islandName: title, isPassed: result.isPassed });
   };
 };
