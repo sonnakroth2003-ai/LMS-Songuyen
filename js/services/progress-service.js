@@ -1,7 +1,6 @@
 /**
  * @file progress-service.js
  * @description Quản lý lưu trữ và cập nhật tiến độ học tập của học sinh.
- * Đã tích hợp các hằng số hệ thống để đảm bảo tính đồng bộ.
  */
 
 import { ISLAND_STATUS, ISLANDS } from '../config/constants.js';
@@ -15,7 +14,6 @@ export const getStudentProgress = (studentId) => {
     return JSON.parse(data);
   }
   
-  // Tạo cấu trúc mặc định: Đảo 1 luôn mở khóa khi bắt đầu
   return {
     studentId,
     islands: {
@@ -33,23 +31,27 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
     const data = getStudentProgress(studentId);
     const cleanIslandId = islandId.toLowerCase().replace('-', '_');
     
-    // Đảm bảo object islands tồn tại
     if (!data.islands) data.islands = {};
     
+    // Lấy dữ liệu cũ hoặc mặc định
     const currentIsland = data.islands[cleanIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
-    const bestScore = Math.max(currentIsland.score || 0, score);
-    const isPassed = score >= 5.0; // Ngưỡng đạt bài thi
     
-    // Cập nhật trạng thái đảo hiện tại
+    // TÍNH TOÁN LẠI ĐIỂM CAO NHẤT: Luôn lấy giá trị lớn nhất giữa điểm cũ và điểm mới
+    const bestScore = Math.max(currentIsland.score || 0, score);
+    const isPassed = score >= 5.0; 
+    
+    // Cập nhật đảo hiện tại với điểm tốt nhất mới
     data.islands[cleanIslandId] = {
       ...currentIsland,
-      score: bestScore,
-      status: isPassed ? ISLAND_STATUS.COMPLETED : ISLAND_STATUS.UNLOCKED,
-      completedAt: isPassed ? new Date().toISOString() : currentIsland.completedAt
+      score: bestScore, // Lưu điểm cao nhất
+      status: (isPassed || currentIsland.status === ISLAND_STATUS.COMPLETED) 
+               ? ISLAND_STATUS.COMPLETED 
+               : ISLAND_STATUS.UNLOCKED,
+      completedAt: (isPassed && !currentIsland.completedAt) ? new Date().toISOString() : currentIsland.completedAt
     };
 
-    // Mở khóa đảo tiếp theo nếu đã hoàn thành đảo hiện tại
-    const islandKeys = Object.keys(ISLANDS); // ['ISLAND_1', 'ISLAND_2', 'ISLAND_3']
+    // Mở khóa đảo tiếp theo nếu đã hoàn thành
+    const islandKeys = Object.keys(ISLANDS);
     const currentIndex = islandKeys.findIndex(key => key.toLowerCase() === cleanIslandId);
     
     if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
@@ -60,8 +62,6 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
     }
 
     data.updatedAt = new Date().toISOString();
-    
-    // Lưu lại vào LocalStorage
     localStorage.setItem(`dkt_progress_${studentId}`, JSON.stringify(data));
     
     return { 
@@ -74,11 +74,4 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
     console.error('[ProgressService] Lỗi khi lưu tiến độ:', error);
     throw error;
   }
-};
-
-/**
- * Lấy lịch sử làm bài (Placeholder - có thể mở rộng với Firestore sau này)
- */
-export const getStudentAttemptsByIsland = async (studentId, islandId) => {
-  return []; 
 };
