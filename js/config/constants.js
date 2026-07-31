@@ -67,7 +67,7 @@ export const ACADEMIC_RANK = Object.freeze({
 // 4. QUY TẮC BÀI TRẮC NGHIỆM ĐẢO (QUIZ CONFIG)
 // ==========================================================
 export const QUIZ_CONFIG = Object.freeze({
-  QUESTIONS_PER_ISLAND: 3,
+  QUESTIONS_PER_ISLAND: 5,
   MAX_SCORE: 10,
   TIME_LIMIT_MINUTES: 15
 });
