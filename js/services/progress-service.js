@@ -1,14 +1,10 @@
 /**
  * @file progress-service.js
  * @description Quản lý lưu trữ và cập nhật tiến độ học tập của học sinh.
+ * Đã tích hợp các hằng số hệ thống để đảm bảo tính đồng bộ.
  */
 
-// Định nghĩa các trạng thái đảo
-const ISLAND_STATUS = {
-  LOCKED: 'LOCKED',
-  UNLOCKED: 'UNLOCKED',
-  COMPLETED: 'COMPLETED'
-};
+import { ISLAND_STATUS, ISLANDS } from '../config/constants.js';
 
 /**
  * Lấy dữ liệu tiến độ của học sinh từ LocalStorage
@@ -18,7 +14,8 @@ export const getStudentProgress = (studentId) => {
   if (data) {
     return JSON.parse(data);
   }
-  // Nếu chưa có, tạo cấu trúc mặc định với Đảo 1 mở khóa
+  
+  // Tạo cấu trúc mặc định: Đảo 1 luôn mở khóa khi bắt đầu
   return {
     studentId,
     islands: {
@@ -41,9 +38,9 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
     
     const currentIsland = data.islands[cleanIslandId] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
     const bestScore = Math.max(currentIsland.score || 0, score);
-    const isPassed = score >= 5.0;
+    const isPassed = score >= 5.0; // Ngưỡng đạt bài thi
     
-    // Cập nhật thông tin đảo hiện tại
+    // Cập nhật trạng thái đảo hiện tại
     data.islands[cleanIslandId] = {
       ...currentIsland,
       score: bestScore,
@@ -51,13 +48,14 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
       completedAt: isPassed ? new Date().toISOString() : currentIsland.completedAt
     };
 
-    // Mở khóa đảo tiếp theo nếu đã qua bài
-    if (isPassed) {
-      if (cleanIslandId === 'island_1') {
-        data.islands['island_2'] = data.islands['island_2'] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
-      }
-      if (cleanIslandId === 'island_2') {
-        data.islands['island_3'] = data.islands['island_3'] || { score: 0, status: ISLAND_STATUS.UNLOCKED };
+    // Mở khóa đảo tiếp theo nếu đã hoàn thành đảo hiện tại
+    const islandKeys = Object.keys(ISLANDS); // ['ISLAND_1', 'ISLAND_2', 'ISLAND_3']
+    const currentIndex = islandKeys.findIndex(key => key.toLowerCase() === cleanIslandId);
+    
+    if (isPassed && currentIndex !== -1 && currentIndex < islandKeys.length - 1) {
+      const nextIslandKey = islandKeys[currentIndex + 1].toLowerCase();
+      if (!data.islands[nextIslandKey]) {
+        data.islands[nextIslandKey] = { score: 0, status: ISLAND_STATUS.UNLOCKED };
       }
     }
 
@@ -79,7 +77,7 @@ export const saveQuizAttemptAndProgress = async (studentId, islandId, score) => 
 };
 
 /**
- * Lấy lịch sử làm bài (Mock)
+ * Lấy lịch sử làm bài (Placeholder - có thể mở rộng với Firestore sau này)
  */
 export const getStudentAttemptsByIsland = async (studentId, islandId) => {
   return []; 
