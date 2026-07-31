@@ -1,55 +1,26 @@
 /**
  * @file export-excel-service.js
- * @description Dịch vụ xuất báo cáo điểm số và tiến độ học tập của học sinh ra file Excel (.xlsx).
+ * @description Dịch vụ xuất báo cáo điểm số (Bản Mock để chạy không cần Firebase).
  */
 
-// Đã cập nhật đường dẫn import sang CDN chuẩn của Firebase
-import { 
-  collection, 
-  getDocs, 
-  query, 
-  where 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-import { db } from '../core/firebase-init.js';
-import { DB_COLLECTIONS, MESSAGES, ROLES } from '../config/constants.js';
+import { MESSAGES } from '../config/constants.js';
 import { calculateAverageScore, getAcademicRank } from './scoring-service.js';
 
 /**
- * Thu thập dữ liệu báo cáo học sinh của một lớp từ Firestore
- * @param {string} classId - Mã lớp học (e.g., '6A1', '6A2')
- * @returns {Promise<Array<Object>>} Danh sách dữ liệu học sinh đã chuẩn hóa
+ * Thu thập dữ liệu báo cáo (Mock data thay vì query Firestore)
  */
 export const fetchClassReportData = async (classId) => {
   try {
-    // 1. Lấy danh sách học sinh thuộc lớp
-    const usersRef = collection(db, DB_COLLECTIONS.USERS);
-    let qUsers;
-    
-    if (classId && classId !== 'ALL') {
-      qUsers = query(usersRef, where('role', '==', ROLES.STUDENT), where('classId', '==', classId));
-    } else {
-      qUsers = query(usersRef, where('role', '==', ROLES.STUDENT));
-    }
+    // Giả lập danh sách học sinh từ LocalStorage hoặc dữ liệu mẫu
+    const mockStudents = [
+      { id: 'student_dang_ngoc_son', fullName: 'Đặng Ngọc Sơn', studentCode: 'HS001', classId: '6A1' },
+      { id: 'student_nguyen_van_a', fullName: 'Nguyễn Văn A', studentCode: 'HS002', classId: '6A1' }
+    ];
 
-    const usersSnap = await getDocs(qUsers);
-    const students = [];
-    usersSnap.forEach(docSnap => {
-      students.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    // 2. Lấy toàn bộ bản ghi tiến độ từ collection 'student_progress'
-    const progressRef = collection(db, DB_COLLECTIONS.STUDENT_PROGRESS);
-    const progressSnap = await getDocs(progressRef);
-    const progressMap = new Map();
-    
-    progressSnap.forEach(docSnap => {
-      progressMap.set(docSnap.id, docSnap.data());
-    });
-
-    // 3. Tổng hợp dữ liệu hiển thị cho báo cáo Excel
-    const reportData = students.map((student, index) => {
-      const studentProgress = progressMap.get(student.id) || { islands: {} };
+    // Giả lập dữ liệu tiến độ từ LocalStorage
+    const reportData = mockStudents.map((student, index) => {
+      const progressRaw = localStorage.getItem(`dkt_progress_${student.id}`);
+      const studentProgress = progressRaw ? JSON.parse(progressRaw) : { islands: {} };
       const islands = studentProgress.islands || {};
 
       const island1Score = islands.island_1?.score ?? 0;
@@ -61,9 +32,9 @@ export const fetchClassReportData = async (classId) => {
 
       return {
         'STT': index + 1,
-        'Mã Học Sinh': student.studentCode || student.id.slice(0, 8),
-        'Họ và Tên': student.fullName || 'Chưa cập nhật',
-        'Lớp': student.className || student.classId || '6A',
+        'Mã Học Sinh': student.studentCode,
+        'Họ và Tên': student.fullName,
+        'Lớp': student.classId,
         'Đảo 1 (Điểm)': island1Score,
         'Đảo 2 (Điểm)': island2Score,
         'Đảo 3 (Điểm)': island3Score,
@@ -74,59 +45,43 @@ export const fetchClassReportData = async (classId) => {
 
     return reportData;
   } catch (error) {
-    console.error('[Export Excel Service] Lỗi khi lấy dữ liệu báo cáo:', error);
-    throw error;
+    console.error('[Export Excel Service] Lỗi khi tạo dữ liệu báo cáo:', error);
+    return [];
   }
 };
 
 /**
- * Xuất dữ liệu báo cáo điểm ra tệp tin Excel (.xlsx)
- * @param {string} classId - Mã lớp học
- * @param {string} customFileName - Tên file tùy chỉnh
- * @returns {Promise<void>}
+ * Xuất dữ liệu báo cáo ra Excel
  */
 export const exportClassReportToExcel = async (classId = 'ALL', customFileName = '') => {
   try {
     if (typeof window.XLSX === 'undefined') {
-      throw new Error('Thư viện SheetJS (XLSX) chưa được tải thành công.');
+      throw new Error('Thư viện SheetJS (XLSX) chưa được tải.');
     }
 
-    // 1. Thu thập dữ liệu báo cáo
     const reportData = await fetchClassReportData(classId);
 
     if (!reportData || reportData.length === 0) {
       throw new Error('Không có dữ liệu học sinh để xuất báo cáo.');
     }
 
-    // 2. Tạo Sheet từ mảng đối tượng JSON
     const worksheet = window.XLSX.utils.json_to_sheet(reportData);
-
-    // Cấu hình độ rộng các cột tự động
-    const columnWidths = [
-      { wch: 6 },  // STT
-      { wch: 15 }, // Mã Học Sinh
-      { wch: 25 }, // Họ và Tên
-      { wch: 10 }, // Lớp
-      { wch: 14 }, // Đảo 1
-      { wch: 14 }, // Đảo 2
-      { wch: 14 }, // Đảo 3
-      { wch: 16 }, // Điểm Trung Bình
-      { wch: 14 }  // Xếp Loại
+    
+    // Cấu hình cột
+    worksheet['!cols'] = [
+      { wch: 6 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, 
+      { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 14 }
     ];
-    worksheet['!cols'] = columnWidths;
 
-    // 3. Khởi tạo Workbook và thêm Worksheet vào
     const workbook = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Bang_Diem_LMS');
 
-    // 4. Tạo tên file và tải về
-    const defaultFileName = `Bao_Cao_Diem_LMS_Lop_${classId}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    const finalFileName = customFileName || defaultFileName;
-
+    const finalFileName = customFileName || `Bao_Cao_Diem_LMS_${new Date().toISOString().slice(0, 10)}.xlsx`;
     window.XLSX.writeFile(workbook, finalFileName);
+    
     console.log(MESSAGES.EXPORT.SUCCESS);
   } catch (error) {
     console.error('[Export Excel Service] Lỗi khi xuất file Excel:', error);
-    throw error;
+    alert(error.message); // Hiển thị cho người dùng biết
   }
 };
