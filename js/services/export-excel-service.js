@@ -1,33 +1,22 @@
-/**
- * @file export-excel-service.js
- * @description Dịch vụ xuất báo cáo điểm số (Bản Mock để chạy không cần Firebase).
- */
-
-import { MESSAGES } from '../config/constants.js';
+import { MESSAGES, ISLANDS } from '../config/constants.js';
 import { calculateAverageScore, getAcademicRank } from './scoring-service.js';
 
-/**
- * Thu thập dữ liệu báo cáo (Mock data thay vì query Firestore)
- */
 export const fetchClassReportData = async (classId) => {
   try {
-    // Giả lập danh sách học sinh từ LocalStorage hoặc dữ liệu mẫu
     const mockStudents = [
       { id: 'student_dang_ngoc_son', fullName: 'Đặng Ngọc Sơn', studentCode: 'HS001', classId: '6A1' },
       { id: 'student_nguyen_van_a', fullName: 'Nguyễn Văn A', studentCode: 'HS002', classId: '6A1' }
     ];
 
-    // Giả lập dữ liệu tiến độ từ LocalStorage
     const reportData = mockStudents.map((student, index) => {
       const progressRaw = localStorage.getItem(`dkt_progress_${student.id}`);
       const studentProgress = progressRaw ? JSON.parse(progressRaw) : { islands: {} };
       const islands = studentProgress.islands || {};
 
-      const island1Score = islands.island_1?.score ?? 0;
-      const island2Score = islands.island_2?.score ?? 0;
-      const island3Score = islands.island_3?.score ?? 0;
-
-      const avgScore = calculateAverageScore([island1Score, island2Score, island3Score]);
+      const islandKeys = Object.keys(ISLANDS || { ISLAND_1: 'island_1', ISLAND_2: 'island_2', ISLAND_3: 'island_3' });
+      const scores = islandKeys.map(key => islands[key.toLowerCase()]?.score ?? 0);
+      
+      const avgScore = calculateAverageScore(scores);
       const rank = getAcademicRank(avgScore);
 
       return {
@@ -35,9 +24,9 @@ export const fetchClassReportData = async (classId) => {
         'Mã Học Sinh': student.studentCode,
         'Họ và Tên': student.fullName,
         'Lớp': student.classId,
-        'Đảo 1 (Điểm)': island1Score,
-        'Đảo 2 (Điểm)': island2Score,
-        'Đảo 3 (Điểm)': island3Score,
+        'Đảo 1': scores[0] || 0,
+        'Đảo 2': scores[1] || 0,
+        'Đảo 3': scores[2] || 0,
         'Điểm Trung Bình': avgScore,
         'Xếp Loại': rank.label
       };
@@ -50,9 +39,6 @@ export const fetchClassReportData = async (classId) => {
   }
 };
 
-/**
- * Xuất dữ liệu báo cáo ra Excel
- */
 export const exportClassReportToExcel = async (classId = 'ALL', customFileName = '') => {
   try {
     if (typeof window.XLSX === 'undefined') {
@@ -67,10 +53,9 @@ export const exportClassReportToExcel = async (classId = 'ALL', customFileName =
 
     const worksheet = window.XLSX.utils.json_to_sheet(reportData);
     
-    // Cấu hình cột
     worksheet['!cols'] = [
       { wch: 6 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, 
-      { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 14 }
+      { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 14 }
     ];
 
     const workbook = window.XLSX.utils.book_new();
@@ -82,6 +67,6 @@ export const exportClassReportToExcel = async (classId = 'ALL', customFileName =
     console.log(MESSAGES.EXPORT.SUCCESS);
   } catch (error) {
     console.error('[Export Excel Service] Lỗi khi xuất file Excel:', error);
-    alert(error.message); // Hiển thị cho người dùng biết
+    alert(error.message);
   }
 };
