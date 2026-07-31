@@ -7,8 +7,8 @@ import { SCORE_THRESHOLDS, ACADEMIC_RANK, QUIZ_CONFIG } from '../config/constant
 
 /**
  * Tính điểm cho bài làm trắc nghiệm dựa trên số câu trả lời đúng
- * @param {Array} userAnswers - Đáp án học sinh chọn
- * @param {Array} correctQuestions - Đáp án đúng
+ * @param {Array} userAnswers - Đáp án học sinh chọn [{questionId, selectedOption}, ...]
+ * @param {Array} correctQuestions - Đáp án đúng [{id, correctOption}, ...]
  * @returns {Object} { score, correctCount, totalQuestions, percentage }
  */
 export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
@@ -19,20 +19,20 @@ export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
   const totalQuestions = correctQuestions.length;
   let correctCount = 0;
 
-  // Bản đồ hóa đáp án đúng theo questionId để tra cứu nhanh
+  // Sử dụng Map để tối ưu hiệu suất tra cứu đáp án đúng
   const answerMap = new Map();
   correctQuestions.forEach(q => {
     answerMap.set(String(q.id), String(q.correctOption));
   });
 
-  // Đếm số câu trả lời đúng
+  // So sánh đáp án người dùng với đáp án đúng
   userAnswers.forEach(ans => {
     if (answerMap.get(String(ans.questionId)) === String(ans.selectedOption)) {
       correctCount++;
     }
   });
 
-  // Quy đổi về thang điểm QUIZ_CONFIG.MAX_SCORE (mặc định 10)
+  // Quy đổi điểm sang thang 10
   const score = parseFloat(((correctCount / totalQuestions) * QUIZ_CONFIG.MAX_SCORE).toFixed(1));
   const percentage = Math.round((correctCount / totalQuestions) * 100);
 
@@ -45,7 +45,7 @@ export const calculateQuizScore = (userAnswers = [], correctQuestions = []) => {
 };
 
 /**
- * Tính điểm trung bình (GPA) từ danh sách điểm của các đảo
+ * Tính điểm trung bình (GPA) từ danh sách điểm số
  */
 export const calculateAverageScore = (scores = []) => {
   const validScores = scores.filter(s => typeof s === 'number' && !isNaN(s));
@@ -56,7 +56,7 @@ export const calculateAverageScore = (scores = []) => {
 };
 
 /**
- * Xác định xếp loại học lực dựa trên điểm số trung bình
+ * Xác định xếp loại học lực dựa trên điểm trung bình
  */
 export const getAcademicRank = (averageScore = 0) => {
   const score = parseFloat(averageScore);
@@ -69,7 +69,7 @@ export const getAcademicRank = (averageScore = 0) => {
 };
 
 /**
- * Kiểm tra học sinh có đủ điều kiện nhận chứng nhận không
+ * Kiểm tra điều kiện cấp chứng nhận
  */
 export const isEligibleForCertificate = (averageScore = 0) => {
   return parseFloat(averageScore) >= SCORE_THRESHOLDS.FAIR;
