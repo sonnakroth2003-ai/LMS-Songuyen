@@ -1,3 +1,8 @@
+/**
+ * @file quiz-modal.js
+ * @description Quản lý modal làm bài trắc nghiệm và kết quả.
+ */
+
 import { getQuizQuestionsByLessonId } from '../services/course-service.js';
 import { submitQuizAttempt } from '../services/quiz-service.js';
 import { store } from '../core/store.js';
@@ -82,7 +87,8 @@ export const showQuizResultModal = ({
       <h2 class="mb-3">${isPassed ? '🎉 Chúc mừng!' : '💪 Cố gắng thêm nhé!'}</h2>
       <div class="display-3 my-3 text-primary fw-bold">${score}/10</div>
       <p class="text-muted">Bạn đã trả lời đúng ${correctCount}/${totalQuestions} câu hỏi.</p>
-      <button class="btn btn-primary w-100 mt-3" onclick="window.location.reload()">Về Bản Đồ</button>
+      <!-- SỬA LỖI: Chuyển hướng bằng hash thay vì reload trang để tránh gián đoạn trải nghiệm -->
+      <button class="btn btn-primary w-100 mt-3" onclick="window.location.hash='#/student-dashboard'; bootstrap.Modal.getInstance(this.closest('.modal')).hide()">Về Bản Đồ</button>
     </div>
   `;
   
